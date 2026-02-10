@@ -24,39 +24,72 @@ from skfem.helpers import dd, ddot, trace, eye
 import gmsh
 import sys
 import math
+import os
+import json
+
+
+def _env_float(name, default):
+    value = os.getenv(name)
+    return float(value) if value not in (None, "") else default
+
+
+def _env_int(name, default):
+    value = os.getenv(name)
+    return int(value) if value not in (None, "") else default
+
+def _env_json_array(name, default):
+    value = os.getenv(name)
+    if value in (None, ""):
+        return np.array(default)
+    parsed = json.loads(value)
+    return np.array(parsed)
+
+
 """
 ## ZADÁNÍ #######################################################
 """
 
 # Zatížení desky
-q = 15  # zatížení v kN/m^2
+q = _env_float("KIRCHHOFF_Q", 15)  # zatížení v kN/m^2
 
 # Hranice oblasti - uzavřený polygon
-polygon = np.array([
+polygon = _env_json_array("KIRCHHOFF_POLYGON", [
     [3.0, 0.0],
     [3.0, 3.0],
     [0.0, 3.0],
     [0.0, 0.2],
     [0.2, 0.2],
     [0.2, 0.0],
-]) 
+])
 
 # Hranice oblasti - okrajové podmínky
 # [1, 1] - zabráněno průhybu i natočení - vetknutí
 # [1, 0] - zabráněno průhybu, natočení umožněno - kloub
 # [0, 0] - umořněn průhyb i natočení - volný okraj desky
 # [0, 1] - umožněn průhyb, zabráněno natočení - např. osa symetrie
-ulozeni = np.array([[0, 1],   # První strana polynomu
-                    [0, 1],   # Druhá
-                    [0, 1],   # Třetí
-                    [1, 1],
-                    [1, 1],
-                    [0, 1],
-                    ],  
-               dtype=bool)  # Převod na booleovské hodnoty
+ulozeni = _env_json_array("KIRCHHOFF_ULOZENI", [
+    [0, 1],
+    [0, 1],
+    [0, 1],
+    [1, 1],
+    [1, 1],
+    [0, 1],
+]).astype(bool)  # Převod na booleovské hodnoty
+
+if polygon.ndim != 2 or polygon.shape[1] != 2:
+    raise ValueError("Polygon musí být 2D pole tvaru (n, 2).")
+
+if polygon.shape[0] < 3:
+    raise ValueError("Polygon musí obsahovat alespoň 3 body.")
+
+if ulozeni.ndim != 2 or ulozeni.shape[1] != 2:
+    raise ValueError("`ulozeni` musí mít tvar (n, 2).")
+
+if ulozeni.shape[0] != polygon.shape[0]:
+    raise ValueError("Počet řádků `ulozeni` musí odpovídat počtu hran polygonu.")
 
 # délka strany prvku v m
-lc = .06
+lc = _env_float("KIRCHHOFF_LC", .06)
 
 # Materiál
 """
@@ -64,9 +97,9 @@ Pro výpočet ohybových momentů je zásadní POISSONův poměr
 Ostatní parametry se projevují jen pro funkce w a dw/de, dw/dy.
 Tyto deformace jsou ale pro linární materiál, a proto pro ŽB velmi podhodnocené!!!
 """
-d = 0.2  # tloušťka desky v m
-E = 35e6  # modul pružnosti v kPa
-nu = 0.25  # poissonův poměr
+d = _env_float("KIRCHHOFF_D", 0.2)  # tloušťka desky v m
+E = _env_float("KIRCHHOFF_E", 35e6)  # modul pružnosti v kPa
+nu = _env_float("KIRCHHOFF_NU", 0.25)  # poissonův poměr
 
 # Grafy podél linie
 # 1) linie rovnoběžná s osou x
@@ -74,7 +107,7 @@ line_par_x=np.array([0.2, 3, 0])  # x_start, x_stop, y_konstantní
 # 2) linie rovnoběžná s osou y
 line_par_y=np.array([0.2, 3, 0])  # y_start, y_stop, x_konstantní
 # 3) počet bodů na liniiovém grafu
-N_query_pts = 100
+N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
 
 
 """
