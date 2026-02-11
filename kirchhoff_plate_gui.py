@@ -22,25 +22,21 @@ from PyQt5.QtWidgets import (
 
 
 DEFAULT_POLYGON = [
+    [0.0, 0.0],
     [3.0, 0.0],
     [3.0, 3.0],
     [0.0, 3.0],
-    [0.0, 0.2],
-    [0.2, 0.2],
-    [0.2, 0.0],
 ]
 
 DEFAULT_ULOZENI = [
-    [0, 1],
-    [0, 1],
-    [0, 1],
     [1, 1],
+    [1, 0],
+    [0, 0],
     [1, 1],
-    [0, 1],
 ]
 
-DEFAULT_LINE_PAR_X = [0.2, 3.0, 0.0]
-DEFAULT_LINE_PAR_Y = [0.2, 3.0, 0.0]
+DEFAULT_LINE_PAR_X = [0.0, 3.0, 1.0]
+DEFAULT_LINE_PAR_Y = [0.0, 3.0, 1.0]
 
 
 def _build_default_edges_text():
