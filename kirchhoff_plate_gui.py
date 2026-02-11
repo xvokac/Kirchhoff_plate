@@ -43,6 +43,13 @@ DEFAULT_LINE_PAR_X = [0.2, 3.0, 0.0]
 DEFAULT_LINE_PAR_Y = [0.2, 3.0, 0.0]
 
 
+def _build_default_edges_text():
+    rows = ["# x,y,w,phi_n"]
+    for point, bc in zip(DEFAULT_POLYGON, DEFAULT_ULOZENI):
+        rows.append(f"{point[0]},{point[1]},{bc[0]},{bc[1]}")
+    return "\n".join(rows)
+
+
 class KirchhoffWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -82,19 +89,14 @@ class KirchhoffWindow(QMainWindow):
         form.addRow("Linie Y: y_stop", self.line_y_stop_input)
         form.addRow("Linie Y: x_konstantní", self.line_y_const_input)
 
-        self.polygon_input = QTextEdit()
-        self.polygon_input.setPlaceholderText("[[x1, y1], [x2, y2], ...]")
-        self.polygon_input.setPlainText(json.dumps(DEFAULT_POLYGON, indent=2, ensure_ascii=False))
-
-        self.ulozeni_input = QTextEdit()
-        self.ulozeni_input.setPlaceholderText("[[w1, phi1], [w2, phi2], ...]")
-        self.ulozeni_input.setPlainText(json.dumps(DEFAULT_ULOZENI, indent=2, ensure_ascii=False))
+        self.edges_input = QTextEdit()
+        self.edges_input.setPlaceholderText("x,y,w,phi_n")
+        self.edges_input.setPlainText(_build_default_edges_text())
 
         layout.addLayout(form)
-        layout.addWidget(QLabel("Polygon (JSON seznam bodů [x, y]):"))
-        layout.addWidget(self.polygon_input)
-        layout.addWidget(QLabel("Okrajové podmínky (JSON seznam [w, φn] pro každou hranu):"))
-        layout.addWidget(self.ulozeni_input)
+        layout.addWidget(QLabel("Geometrie + okrajové podmínky (1 řádek = 1 vrchol + podmínka následující hrany):"))
+        layout.addWidget(QLabel("Formát: x,y,w,phi_n   | komentáře začínají #"))
+        layout.addWidget(self.edges_input)
 
         self.status = QLabel("Nastavte hodnoty a spusťte výpočet.")
 
@@ -114,32 +116,51 @@ class KirchhoffWindow(QMainWindow):
         box.setSingleStep(10 ** (-decimals) if decimals > 0 else 1000.0)
         return box
 
-    def _validate_json_fields(self):
-        try:
-            polygon = json.loads(self.polygon_input.toPlainText())
-            ulozeni = json.loads(self.ulozeni_input.toPlainText())
-        except json.JSONDecodeError as err:
-            QMessageBox.critical(self, "Neplatný JSON", f"Chyba JSON: {err}")
-            return None
+    def _parse_edges_text(self):
+        polygon = []
+        ulozeni = []
+        lines = self.edges_input.toPlainText().splitlines()
 
-        if not isinstance(polygon, list) or len(polygon) < 3:
-            QMessageBox.critical(self, "Neplatný polygon", "Polygon musí být seznam alespoň 3 bodů.")
-            return None
+        for index, raw_line in enumerate(lines, start=1):
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
 
-        if not all(isinstance(p, list) and len(p) == 2 for p in polygon):
-            QMessageBox.critical(self, "Neplatný polygon", "Každý bod polygonu musí být [x, y].")
-            return None
+            parts = [part.strip() for part in line.split(",")]
+            if len(parts) != 4:
+                QMessageBox.critical(
+                    self,
+                    "Neplatný řádek",
+                    f"Řádek {index}: očekáván formát x,y,w,phi_n.",
+                )
+                return None
 
-        if not isinstance(ulozeni, list) or len(ulozeni) != len(polygon):
-            QMessageBox.critical(
-                self,
-                "Neplatné uložení",
-                "`ulozeni` musí mít stejný počet řádků jako polygon hran.",
-            )
-            return None
+            try:
+                x = float(parts[0])
+                y = float(parts[1])
+                w = int(parts[2])
+                phi_n = int(parts[3])
+            except ValueError:
+                QMessageBox.critical(
+                    self,
+                    "Neplatná data",
+                    f"Řádek {index}: x,y musí být čísla a w,phi_n musí být 0/1.",
+                )
+                return None
 
-        if not all(isinstance(u, list) and len(u) == 2 for u in ulozeni):
-            QMessageBox.critical(self, "Neplatné uložení", "Každý řádek `ulozeni` musí být [w, φn].")
+            if w not in (0, 1) or phi_n not in (0, 1):
+                QMessageBox.critical(
+                    self,
+                    "Neplatná data",
+                    f"Řádek {index}: w a phi_n mohou být pouze 0 nebo 1.",
+                )
+                return None
+
+            polygon.append([x, y])
+            ulozeni.append([w, phi_n])
+
+        if len(polygon) < 3:
+            QMessageBox.critical(self, "Neplatný polygon", "Je potřeba zadat alespoň 3 vrcholy.")
             return None
 
         return polygon, ulozeni
@@ -158,11 +179,11 @@ class KirchhoffWindow(QMainWindow):
         return line_par_x, line_par_y
 
     def run_solver(self):
-        validated = self._validate_json_fields()
-        if validated is None:
+        parsed = self._parse_edges_text()
+        if parsed is None:
             return
 
-        polygon, ulozeni = validated
+        polygon, ulozeni = parsed
         line_par_x, line_par_y = self._build_line_params()
 
         env = os.environ.copy()
@@ -200,6 +221,6 @@ class KirchhoffWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = KirchhoffWindow()
-    window.resize(640, 760)
+    window.resize(760, 820)
     window.show()
     sys.exit(app.exec_())
