@@ -76,12 +76,12 @@ class KirchhoffWindow(QMainWindow):
         self.line_y_stop_input = self._create_double(DEFAULT_LINE_PAR_Y[1], -1e4, 1e4, 3)
         self.line_y_const_input = self._create_double(DEFAULT_LINE_PAR_Y[2], -1e4, 1e4, 3)
 
-        form.addRow("q [kN/m²]", self.q_input)
-        form.addRow("lc [m]", self.lc_input)
-        form.addRow("d [m]", self.d_input)
-        form.addRow("E [kPa]", self.e_input)
-        form.addRow("nu [-]", self.nu_input)
-        form.addRow("Počet bodů liniových grafů", self.n_pts_input)
+        form.addRow("Spojité zatížení q [kN/m²]", self.q_input)
+        form.addRow("Délka strany prvku lc [m]", self.lc_input)
+        form.addRow("Tloušťka desky d [m]", self.d_input)
+        form.addRow("Modul pružnosti E [kPa]", self.e_input)
+        form.addRow("Poissonův poměr nu [-]", self.nu_input)
+        
 
         self.edges_input = QTextEdit()
         self.edges_input.setPlaceholderText("x,y,w,phi_n")
@@ -89,7 +89,7 @@ class KirchhoffWindow(QMainWindow):
 
         layout.addLayout(form)
         layout.addWidget(QLabel("Geometrie + okrajové podmínky (1 řádek = 1 vrchol + podmínka následující hrany):"))
-        layout.addWidget(QLabel("Formát: x,y,w,phi_n   | komentáře začínají #"))
+        layout.addWidget(QLabel("Formát: x, y, w=0?, phi_n=0?   | řádky s komentářem začínají #"))
         layout.addWidget(self.edges_input)
 
         line_form = QFormLayout()
@@ -99,6 +99,7 @@ class KirchhoffWindow(QMainWindow):
         line_form.addRow("Linie Y: y_start", self.line_y_start_input)
         line_form.addRow("Linie Y: y_stop", self.line_y_stop_input)
         line_form.addRow("Linie Y: x_konstantní", self.line_y_const_input)
+        line_form.addRow("Počet bodů liniových grafů", self.n_pts_input)
 
         layout.addWidget(QLabel("Parametry pro liniové grafy:"))
         layout.addLayout(line_form)
