@@ -56,12 +56,14 @@ straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro v
 - Parametry pro liniové grafy - je možné zadat úsečky rovnoběžnou s osou X a Y, pro kterou se vykreslí grafy průběhu dimenzačních mometů.
 - Počet bodů liniového grafu - stanový počet bodů na úcečce, pro které se budou hledat výsledky v síti MKP.
 
-Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti. Tvar průhybové čáry (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není.
+Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti. Tvar průhybu (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není. 
+Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lower} = M_x + \abs{M_{xy}}$, $M_{x,dim,upper} = M_x - \abs{M_{xy}}$ a podobně pro směr $Y$.
 
 Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení grafů.
 
 Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
 
 Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
+
 
 
