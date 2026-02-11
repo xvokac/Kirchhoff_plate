@@ -45,6 +45,11 @@ def _env_json_array(name, default):
     return np.array(parsed)
 
 
+def _validate_line_params(name, line):
+    if line.ndim != 1 or line.shape[0] != 3:
+        raise ValueError(f"`{name}` musí mít tvar [start, stop, konst].")
+
+
 """
 ## ZADÁNÍ #######################################################
 """
@@ -103,9 +108,11 @@ nu = _env_float("KIRCHHOFF_NU", 0.25)  # poissonův poměr
 
 # Grafy podél linie
 # 1) linie rovnoběžná s osou x
-line_par_x=np.array([0.2, 3, 0])  # x_start, x_stop, y_konstantní
+line_par_x = _env_json_array("KIRCHHOFF_LINE_PAR_X", [0.2, 3, 0])  # x_start, x_stop, y_konstantní
 # 2) linie rovnoběžná s osou y
-line_par_y=np.array([0.2, 3, 0])  # y_start, y_stop, x_konstantní
+line_par_y = _env_json_array("KIRCHHOFF_LINE_PAR_Y", [0.2, 3, 0])  # y_start, y_stop, x_konstantní
+_validate_line_params("KIRCHHOFF_LINE_PAR_X", line_par_x)
+_validate_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
 # 3) počet bodů na liniiovém grafu
 N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
 
@@ -259,6 +266,40 @@ def is_point_on_segment(point, A, B, tol=1e-9):
         return False  # Bod leží mimo segment, směrem za B
     return True
 
+
+def is_point_inside_or_on_boundary(point, polygon, tol=1e-9):
+    for i in range(len(polygon)):
+        a = polygon[i]
+        b = polygon[(i + 1) % len(polygon)]
+        if is_point_on_segment(point, a, b, tol=tol):
+            return True
+
+    x, y = point
+    inside = False
+    for i in range(len(polygon)):
+        x1, y1 = polygon[i]
+        x2, y2 = polygon[(i + 1) % len(polygon)]
+        intersects = ((y1 > y) != (y2 > y))
+        if intersects:
+            x_intersection = (x2 - x1) * (y - y1) / (y2 - y1 + tol) + x1
+            if x < x_intersection:
+                inside = not inside
+    return inside
+
+
+def validate_query_line_in_polygon(line_params, axis, polygon, n_samples=100):
+    line_values = np.linspace(line_params[0], line_params[1], n_samples)
+    for value in line_values:
+        if axis == "x":
+            point = np.array([value, line_params[2]])
+        else:
+            point = np.array([line_params[2], value])
+
+        if not is_point_inside_or_on_boundary(point, polygon):
+            raise ValueError(
+                f"Linie pro {axis}-graf není celá uvnitř oblasti. Problematický bod: {point.tolist()}"
+            )
+
 # Ruční přiřazení okrajových podmínek
 # Kontrola umístění bodů s DOF na hranici s okrajovou podmínkou
 conden = np.zeros(basis.doflocs[0].shape)
@@ -369,6 +410,9 @@ mx_dim_upper = basis_p0.project(M_x_dim_upper)
 my_dim_upper = basis_p0.project(M_y_dim_upper)
 
 # Příprava pro zobrazení grafů podél linií
+validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
+validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
+
 query_pts_x = np.vstack([
     np.linspace(line_par_x[0],line_par_x[1],N_query_pts),  # x[0] coordinate values - proměnné x
     line_par_x[2]*np.ones(N_query_pts),  # x[1] coordinate values - konstantní y

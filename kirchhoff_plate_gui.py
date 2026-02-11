@@ -39,6 +39,9 @@ DEFAULT_ULOZENI = [
     [0, 1],
 ]
 
+DEFAULT_LINE_PAR_X = [0.2, 3.0, 0.0]
+DEFAULT_LINE_PAR_Y = [0.2, 3.0, 0.0]
+
 
 class KirchhoffWindow(QMainWindow):
     def __init__(self):
@@ -58,12 +61,26 @@ class KirchhoffWindow(QMainWindow):
         self.n_pts_input.setRange(10, 2000)
         self.n_pts_input.setValue(100)
 
+        self.line_x_start_input = self._create_double(DEFAULT_LINE_PAR_X[0], -1e4, 1e4, 3)
+        self.line_x_stop_input = self._create_double(DEFAULT_LINE_PAR_X[1], -1e4, 1e4, 3)
+        self.line_x_const_input = self._create_double(DEFAULT_LINE_PAR_X[2], -1e4, 1e4, 3)
+
+        self.line_y_start_input = self._create_double(DEFAULT_LINE_PAR_Y[0], -1e4, 1e4, 3)
+        self.line_y_stop_input = self._create_double(DEFAULT_LINE_PAR_Y[1], -1e4, 1e4, 3)
+        self.line_y_const_input = self._create_double(DEFAULT_LINE_PAR_Y[2], -1e4, 1e4, 3)
+
         form.addRow("q [kN/m²]", self.q_input)
         form.addRow("lc [m]", self.lc_input)
         form.addRow("d [m]", self.d_input)
         form.addRow("E [kPa]", self.e_input)
         form.addRow("nu [-]", self.nu_input)
         form.addRow("Počet bodů liniových grafů", self.n_pts_input)
+        form.addRow("Linie X: x_start", self.line_x_start_input)
+        form.addRow("Linie X: x_stop", self.line_x_stop_input)
+        form.addRow("Linie X: y_konstantní", self.line_x_const_input)
+        form.addRow("Linie Y: y_start", self.line_y_start_input)
+        form.addRow("Linie Y: y_stop", self.line_y_stop_input)
+        form.addRow("Linie Y: x_konstantní", self.line_y_const_input)
 
         self.polygon_input = QTextEdit()
         self.polygon_input.setPlaceholderText("[[x1, y1], [x2, y2], ...]")
@@ -127,12 +144,27 @@ class KirchhoffWindow(QMainWindow):
 
         return polygon, ulozeni
 
+    def _build_line_params(self):
+        line_par_x = [
+            self.line_x_start_input.value(),
+            self.line_x_stop_input.value(),
+            self.line_x_const_input.value(),
+        ]
+        line_par_y = [
+            self.line_y_start_input.value(),
+            self.line_y_stop_input.value(),
+            self.line_y_const_input.value(),
+        ]
+        return line_par_x, line_par_y
+
     def run_solver(self):
         validated = self._validate_json_fields()
         if validated is None:
             return
 
         polygon, ulozeni = validated
+        line_par_x, line_par_y = self._build_line_params()
+
         env = os.environ.copy()
         env["KIRCHHOFF_Q"] = str(self.q_input.value())
         env["KIRCHHOFF_LC"] = str(self.lc_input.value())
@@ -142,6 +174,8 @@ class KirchhoffWindow(QMainWindow):
         env["KIRCHHOFF_N_QUERY_PTS"] = str(self.n_pts_input.value())
         env["KIRCHHOFF_POLYGON"] = json.dumps(polygon)
         env["KIRCHHOFF_ULOZENI"] = json.dumps(ulozeni)
+        env["KIRCHHOFF_LINE_PAR_X"] = json.dumps(line_par_x)
+        env["KIRCHHOFF_LINE_PAR_Y"] = json.dumps(line_par_y)
 
         script_path = Path(__file__).with_name("kirchhoff_plate.py")
 
