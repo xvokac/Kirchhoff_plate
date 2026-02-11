@@ -23,8 +23,8 @@ Hlavním cílem je:
 
 ## Jak začít
 
-Příkazy jsou použity pro ystém Windows. V přpadě Linux nebo macOS je třeba
-použít odpovídající příkazy pro tyto systémy, např. `python3` místo `python` atd.
+Příkazy jsou použity pro systém Windows. V případě Linux nebo macOS je třeba
+použít odpovídající ekvivalenty pro tyto systémy, např. `python3` místo `python` atd.
 
 Je třeba mít instalován Python a odpovídající závislosti.
 
@@ -64,6 +64,9 @@ Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lo
 Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
 
 Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
+
+
+
 
 
 
