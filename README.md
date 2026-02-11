@@ -40,7 +40,9 @@ python kirchhoff_plate_gui.py
 ## Hlavní okno
 
 Vstupní data se zadávají pomocí hlavního okna aplikace.
+
 ![input data](images/Clipboard01.png)
+
 Hlavní okno obsahuje několik položek:
 
 - Spojité zatížení na desku
@@ -61,4 +63,5 @@ Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení graf�
 Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
 
 Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
+
 
