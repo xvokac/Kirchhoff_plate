@@ -65,9 +65,19 @@ Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
 
 Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
 
+![input data](kirchhoff_plots/Plot_01.png)
 
+![input data](kirchhoff_plots/Plot_02.png)
 
+![input data](kirchhoff_plots/Plot_03.png)
 
+![input data](kirchhoff_plots/Plot_04.png)
+
+![input data](kirchhoff_plots/Plot_05.png)
+
+![input data](kirchhoff_plots/Plot_06.png)
+
+![input data](kirchhoff_plots/Plot_07.png)
 
 
 
