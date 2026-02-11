@@ -468,6 +468,8 @@ def visualize_w(m,basis,w):
     # Zobrazení funkce w
     plot(basis, w, ax=ax, shading='gouraud', colorbar=True)
     ax.set_title('Shape of deflection $w(x,y)$')
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
     
     ax.set_aspect('equal')  # Nastavení stejného měřítka pro osy
     
@@ -483,18 +485,24 @@ def visualize_moments(mx, my, mxy):
     ax1 = draw(m, ax=axes[0])
     plot(basis_p0, mx, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('Moment $M_x$ [kNm]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu my
     ax2 = draw(m, ax=axes[1])
     plot(basis_p0, my, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('Moment $M_y$ [kNm]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu mxy
     ax3 = draw(m, ax=axes[2])
     plot(basis_p0, mxy, ax=ax3, shading='gouraud', colorbar=True)
     ax3.set_title('Moment $M_{xy}$ [kNm]')
+    ax3.set_xlabel('X [m]')
+    ax3.set_ylabel('Y [m]')
     ax3.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     plt.tight_layout()  # Pro lepší rozložení grafů
@@ -511,12 +519,16 @@ def visualize_dim_moments_x(mx_dim_lower, mx_dim_upper):
     ax1 = draw(m, ax=axes[0])
     plot(basis_p0, mx_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('Moment $M_{x, dim, lower}$ [kNm]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu my
     ax2 = draw(m, ax=axes[1])
     plot(basis_p0, mx_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('Moment $M_{x, dim, upper}$ [kNm]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     plt.tight_layout()  # Pro lepší rozložení grafů
@@ -533,12 +545,16 @@ def visualize_dim_moments_y(my_dim_lower, my_dim_upper):
     ax1 = draw(m, ax=axes[0])
     plot(basis_p0, my_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('Moment $M_{y, dim, lower}$ [kNm]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu my
     ax2 = draw(m, ax=axes[1])
     plot(basis_p0, my_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('Moment $M_{y, dim, upper}$ [kNm]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
 
@@ -566,6 +582,8 @@ def visualize_mesh(m, D, basis):
     y_coords = basis.doflocs[1][valid_indices]  # Souřadnice y pro indexy v D a současně v basis.dofs.facet_dofs
     ax.scatter(x_coords, y_coords, color='red', label=r'$\phi_n=0$') #"r" je důležité, aby zpětné lomítko nebylo interpretováno jako escape sekvence
     # Display the plot
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
     ax.set_aspect('equal', adjustable='box') #stejné měřítko os
     plt.legend() #zobraz legentu
     
@@ -580,4 +598,3 @@ if __name__ == "__main__":
     visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_par_y)
     plt.show() #zobrazí všechny grafy najednou
     
-
