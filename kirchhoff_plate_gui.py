@@ -73,10 +73,10 @@ class KirchhoffWindow(QMainWindow):
         self.line_y_const_input = self._create_double(DEFAULT_LINE_PAR_Y[2], -1e4, 1e4, 3)
 
         form.addRow("Spojité zatížení q [kN/m²]", self.q_input)
-        form.addRow("Délka strany prvku lc [m]", self.lc_input)
         form.addRow("Tloušťka desky d [m]", self.d_input)
         form.addRow("Modul pružnosti E [kPa]", self.e_input)
         form.addRow("Poissonův poměr nu [-]", self.nu_input)
+        form.addRow("Délka strany prvku lc [m]", self.lc_input)
         
 
         self.edges_input = QTextEdit()
