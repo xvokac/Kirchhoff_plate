@@ -76,18 +76,12 @@ class KirchhoffWindow(QMainWindow):
         self.line_y_stop_input = self._create_double(DEFAULT_LINE_PAR_Y[1], -1e4, 1e4, 3)
         self.line_y_const_input = self._create_double(DEFAULT_LINE_PAR_Y[2], -1e4, 1e4, 3)
 
-        form.addRow("Spojité zatížení q [kN/m²]", self.q_input)
-        form.addRow("Délka strany prvku lc [m]", self.lc_input)
-        form.addRow("Tloušťka desky d [m]", self.d_input)
-        form.addRow("Modul pružnosti E [kPa]", self.e_input)
-        form.addRow("Poissonovo číslo nu [-]", self.nu_input)
+        form.addRow("q [kN/m²]", self.q_input)
+        form.addRow("lc [m]", self.lc_input)
+        form.addRow("d [m]", self.d_input)
+        form.addRow("E [kPa]", self.e_input)
+        form.addRow("nu [-]", self.nu_input)
         form.addRow("Počet bodů liniových grafů", self.n_pts_input)
-        form.addRow("Liniový graf ve směru osy X: x_start", self.line_x_start_input)
-        form.addRow("Liniový graf ve směru osy X: x_stop", self.line_x_stop_input)
-        form.addRow("Liniový graf ve směru osy X: y_konstantní", self.line_x_const_input)
-        form.addRow("Liniový graf ve směru osy Y: y_start", self.line_y_start_input)
-        form.addRow("Liniový graf ve směru osy Y: y_stop", self.line_y_stop_input)
-        form.addRow("Liniový graf ve směru osy Y: x_konstantní", self.line_y_const_input)
 
         self.edges_input = QTextEdit()
         self.edges_input.setPlaceholderText("x,y,w,phi_n")
@@ -97,6 +91,17 @@ class KirchhoffWindow(QMainWindow):
         layout.addWidget(QLabel("Geometrie + okrajové podmínky (1 řádek = 1 vrchol + podmínka následující hrany):"))
         layout.addWidget(QLabel("Formát: x,y,w,phi_n   | komentáře začínají #"))
         layout.addWidget(self.edges_input)
+
+        line_form = QFormLayout()
+        line_form.addRow("Linie X: x_start", self.line_x_start_input)
+        line_form.addRow("Linie X: x_stop", self.line_x_stop_input)
+        line_form.addRow("Linie X: y_konstantní", self.line_x_const_input)
+        line_form.addRow("Linie Y: y_start", self.line_y_start_input)
+        line_form.addRow("Linie Y: y_stop", self.line_y_stop_input)
+        line_form.addRow("Linie Y: x_konstantní", self.line_y_const_input)
+
+        layout.addWidget(QLabel("Parametry pro liniové grafy:"))
+        layout.addLayout(line_form)
 
         self.status = QLabel("Nastavte hodnoty a spusťte výpočet.")
 
