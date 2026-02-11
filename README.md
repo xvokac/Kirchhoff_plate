@@ -58,10 +58,15 @@ straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro v
 
 Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení grafů.
 
-Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti. Tvar průhybu (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není. 
+Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
+
 Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$.
 
-Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
+Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti. 
+Na průběh momentů má vliv zadaný poissonův součinitel.
+
+Tvar průhybu (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není. 
+Proto desková tuhost vypočtená z tloušťky desky a modulu pružnosti jako u lineárního pružného materiálu není reálná.
 
 Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
 
@@ -78,6 +83,7 @@ Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
 ![input data](kirchhoff_plots/plot_06.png)
 
 ![input data](kirchhoff_plots/plot_07.png)
+
 
 
 
