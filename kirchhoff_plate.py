@@ -26,6 +26,7 @@ import sys
 import math
 import os
 import json
+from datetime import datetime
 
 
 def _env_float(name, default):
@@ -115,6 +116,10 @@ _validate_line_params("KIRCHHOFF_LINE_PAR_X", line_par_x)
 _validate_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
 # 3) počet bodů na liniiovém grafu
 N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
+
+report_file = os.getenv("KIRCHHOFF_REPORT_FILE", "kirchhoff_report.pdf")
+input_file = os.getenv("KIRCHHOFF_INPUT_FILE", "kirchhoff_input.json")
+plots_dir = os.getenv("KIRCHHOFF_PLOTS_DIR", "kirchhoff_plots")
 
 
 """
@@ -439,7 +444,8 @@ def visualize_probe_x(query_pts_x, p0_probes_x,mx_dim_lower, mx_dim_upper, line_
     ax.invert_yaxis()  #záporný moment nahoru
     ax.grid(True)
     plt.legend() #zobraz legentu
-    
+    return fig
+
 
 def visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_par_y):
     from skfem.visuals.matplotlib import draw, plot
@@ -454,7 +460,7 @@ def visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_
     ax.invert_yaxis()  #záporný moment nahoru
     ax.grid(True)
     plt.legend() #zobraz legentu
-    
+    return fig
 
 
 def visualize_w(m,basis,w):
@@ -468,9 +474,12 @@ def visualize_w(m,basis,w):
     # Zobrazení funkce w
     plot(basis, w, ax=ax, shading='gouraud', colorbar=True)
     ax.set_title('Shape of deflection $w(x,y)$')
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
     
     ax.set_aspect('equal')  # Nastavení stejného měřítka pro osy
-    
+    return fig
+
 
 def visualize_moments(mx, my, mxy):
     from skfem.visuals.matplotlib import draw, plot
@@ -483,22 +492,29 @@ def visualize_moments(mx, my, mxy):
     ax1 = draw(m, ax=axes[0])
     plot(basis_p0, mx, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('Moment $M_x$ [kNm]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu my
     ax2 = draw(m, ax=axes[1])
     plot(basis_p0, my, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('Moment $M_y$ [kNm]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu mxy
     ax3 = draw(m, ax=axes[2])
     plot(basis_p0, mxy, ax=ax3, shading='gouraud', colorbar=True)
     ax3.set_title('Moment $M_{xy}$ [kNm]')
+    ax3.set_xlabel('X [m]')
+    ax3.set_ylabel('Y [m]')
     ax3.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     plt.tight_layout()  # Pro lepší rozložení grafů
-    
+    return fig
+
 
 def visualize_dim_moments_x(mx_dim_lower, mx_dim_upper):
     from skfem.visuals.matplotlib import draw, plot
@@ -511,16 +527,21 @@ def visualize_dim_moments_x(mx_dim_lower, mx_dim_upper):
     ax1 = draw(m, ax=axes[0])
     plot(basis_p0, mx_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('Moment $M_{x, dim, lower}$ [kNm]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu my
     ax2 = draw(m, ax=axes[1])
     plot(basis_p0, mx_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('Moment $M_{x, dim, upper}$ [kNm]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     plt.tight_layout()  # Pro lepší rozložení grafů
-    
+    return fig
+
 
 def visualize_dim_moments_y(my_dim_lower, my_dim_upper):
     from skfem.visuals.matplotlib import draw, plot
@@ -533,17 +554,22 @@ def visualize_dim_moments_y(my_dim_lower, my_dim_upper):
     ax1 = draw(m, ax=axes[0])
     plot(basis_p0, my_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('Moment $M_{y, dim, lower}$ [kNm]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
     # Zobrazení momentu my
     ax2 = draw(m, ax=axes[1])
     plot(basis_p0, my_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('Moment $M_{y, dim, upper}$ [kNm]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
 
     plt.tight_layout()  # Pro lepší rozložení grafů
-    
+    return fig
+
 
 def visualize_mesh(m, D, basis):
     from skfem.visuals.matplotlib import draw, plot
@@ -566,18 +592,71 @@ def visualize_mesh(m, D, basis):
     y_coords = basis.doflocs[1][valid_indices]  # Souřadnice y pro indexy v D a současně v basis.dofs.facet_dofs
     ax.scatter(x_coords, y_coords, color='red', label=r'$\phi_n=0$') #"r" je důležité, aby zpětné lomítko nebylo interpretováno jako escape sekvence
     # Display the plot
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
     ax.set_aspect('equal', adjustable='box') #stejné měřítko os
     plt.legend() #zobraz legentu
-    
+    return fig
+
+
+def save_input_assignment(input_path, input_data):
+    with open(input_path, 'w', encoding='utf-8') as file:
+        json.dump(input_data, file, ensure_ascii=False, indent=2)
+
+
+def save_report_pdf(pdf_path, input_data, figures):
+    from matplotlib.backends.backend_pdf import PdfPages
+    import matplotlib.pyplot as plt
+
+    with PdfPages(pdf_path) as pdf:
+        fig_text, ax_text = plt.subplots(figsize=(8.27, 11.69))
+        ax_text.axis('off')
+        input_json = json.dumps(input_data, ensure_ascii=False, indent=2)
+        ax_text.text(0.02, 0.98, f"Kirchhoff plate report\nVygenerováno: {datetime.now().isoformat(timespec='seconds')}\n\nZadání:\n{input_json}",
+                     va='top', ha='left', family='monospace', fontsize=9)
+        pdf.savefig(fig_text, bbox_inches='tight')
+        plt.close(fig_text)
+
+        for fig in figures:
+            pdf.savefig(fig, bbox_inches='tight')
+
+
+def save_plot_images(output_dir, figures):
+    os.makedirs(output_dir, exist_ok=True)
+    for i, fig in enumerate(figures, start=1):
+        fig.savefig(os.path.join(output_dir, f"plot_{i:02d}.png"), dpi=200, bbox_inches='tight')
+
 
 if __name__ == "__main__":
-    visualize_mesh(m, D, basis)
-    visualize_w(m,basis,w)
-    visualize_moments(mx,my,mxy)
-    visualize_dim_moments_x(mx_dim_lower, mx_dim_upper)
-    visualize_dim_moments_y(my_dim_lower, my_dim_upper)
-    visualize_probe_x(query_pts_x, p0_probes_x,mx_dim_lower, mx_dim_upper, line_par_x)
-    visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_par_y)
+    figures = [
+        visualize_mesh(m, D, basis),
+        visualize_w(m,basis,w),
+        visualize_moments(mx,my,mxy),
+        visualize_dim_moments_x(mx_dim_lower, mx_dim_upper),
+        visualize_dim_moments_y(my_dim_lower, my_dim_upper),
+        visualize_probe_x(query_pts_x, p0_probes_x,mx_dim_lower, mx_dim_upper, line_par_x),
+        visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_par_y),
+    ]
+
+    input_data = {
+        "q": q,
+        "polygon": polygon.tolist(),
+        "ulozeni": ulozeni.astype(int).tolist(),
+        "lc": lc,
+        "d": d,
+        "E": E,
+        "nu": nu,
+        "line_par_x": line_par_x.tolist(),
+        "line_par_y": line_par_y.tolist(),
+        "N_query_pts": N_query_pts,
+    }
+
+    save_input_assignment(input_file, input_data)
+    save_plot_images(plots_dir, figures)
+    save_report_pdf(report_file, input_data, figures)
+    print(f"Uloženo zadání: {input_file}")
+    print(f"Uloženy obrázky: {plots_dir}")
+    print(f"Uložen report: {report_file}")
+
     plt.show() #zobrazí všechny grafy najednou
     
-
