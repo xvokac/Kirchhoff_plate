@@ -51,7 +51,7 @@ Hlavní okno obsahuje několik položek:
 - Poissonův poměr
 - Délka strany prvku - generuje se síť MKP s tímto parametrem
 - Geometrie desky - se zadává pomocí tabulky, každá řádek začíná souřadnicemi 
-vrcholu polygonu a následují boolen proměnné, které se vážé k následující 
+vrcholu polygonu a následují boolen proměnné, které se váže k následující 
 straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro volný okraj desky, [1,1] vetknutí, [0,1] podmínka osy symetrie, [1,0] válcový kloub.
 - Parametry pro liniové grafy - je možné zadat úsečky rovnoběžnou s osou X a Y, pro kterou se vykreslí grafy průběhu dimenzačních mometů.
 - Počet bodů liniového grafu - stanový počet bodů na úcečce, pro které se budou hledat výsledky v síti MKP.
@@ -64,6 +64,7 @@ Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lo
 Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
 
 Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
+
 
 
 
