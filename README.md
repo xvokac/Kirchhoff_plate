@@ -56,8 +56,9 @@ straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro v
 
 Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti. Tvar průhybové čáry (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není.
 
-Tlačítko ** Spustit výpočet ** zahájí výpočetní proces a zobrazení grafů.
+Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení grafů.
 
 Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
 
 Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
+
