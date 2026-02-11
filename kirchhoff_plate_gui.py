@@ -213,7 +213,7 @@ class KirchhoffWindow(QMainWindow):
         )
 
         if result.returncode == 0:
-            self.status.setText("Hotovo. Výsledek byl spočten, grafy se otevřely v samostatných oknech.")
+            self.status.setText("Hotovo. Výsledek byl spočten, grafy se otevřely v samostatných oknech. Výsledek byl zapsán do souboru.")
         else:
             self.status.setText("Výpočet selhal – podrobnosti jsou vypsané v konzoli.")
             print(result.stdout)
