@@ -2,7 +2,8 @@
 
 Jednoduchý program pro výpočet Kirchhoffovy desky pomocí
 jednoduchých prvků Morley. Jedná se o nejjednodušší prvek MPK, kterým
-lze řešit tuto problematiku.
+lze řešit tuto problematiku. 
+Ohybové a krouticí momenty jsou po prvku aproximovány konstantní funkcí.
 
 ---
 
@@ -83,6 +84,7 @@ Výsledky se zapíší i do aktuálního adresáře (PDF soubor a JPG soubory).
 ![input data](kirchhoff_plots/plot_06.png)
 
 ![input data](kirchhoff_plots/plot_07.png)
+
 
 
 
