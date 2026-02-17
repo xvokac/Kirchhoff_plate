@@ -200,29 +200,58 @@ class KirchhoffWindow(QMainWindow):
         env["KIRCHHOFF_LINE_PAR_X"] = json.dumps(line_par_x)
         env["KIRCHHOFF_LINE_PAR_Y"] = json.dumps(line_par_y)
 
-        script_path = Path(__file__).with_name("kirchhoff_plate.py")
-
         self.status.setText("Výpočet běží…")
         self.repaint()
 
-        result = subprocess.run(
-            [sys.executable, str(script_path)],
-            env=env,
-            capture_output=True,
-            text=True,
+        process = self._launch_solver_process(env)
+        if process is None:
+            self.status.setText("Výpočet selhal – nepodařilo se spustit výpočetní proces.")
+            return
+
+        self.status.setText(
+            "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní."
         )
 
-        if result.returncode == 0:
-            self.status.setText("Hotovo. Výsledek byl spočten, grafy se otevřely v samostatných oknech. Výsledek byl zapsán do souboru.")
+    def _launch_solver_process(self, env):
+        if getattr(sys, "frozen", False):
+            cmd = [sys.executable, "--run-solver"]
         else:
-            self.status.setText("Výpočet selhal – podrobnosti jsou vypsané v konzoli.")
-            print(result.stdout)
-            print(result.stderr)
+            cmd = [sys.executable, str(Path(__file__).resolve()), "--run-solver"]
+
+        try:
+            creationflags = 0
+            if sys.platform.startswith("win"):
+                creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+
+            return subprocess.Popen(
+                cmd,
+                env=env,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+                creationflags=creationflags,
+            )
+        except OSError as error:
+            QMessageBox.critical(self, "Chyba spuštění", f"Nepodařilo se spustit výpočet: {error}")
+            return None
 
 
-if __name__ == "__main__":
+def run_solver_entrypoint():
+    import kirchhoff_plate  # noqa: F401
+
+
+def main():
+    if "--run-solver" in sys.argv:
+        run_solver_entrypoint()
+        return
+
     app = QApplication(sys.argv)
     window = KirchhoffWindow()
     window.resize(760, 820)
     window.show()
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()
