@@ -38,6 +38,18 @@ Spuštění aplikace např. příkazem
 python kirchhoff_plate_gui.py
 ```
 
+
+## Vytvoření `.exe` pomocí PyInstalleru
+
+Aplikace je připravená na spuštění výpočtu i po zabalení do jednoho `exe` souboru.
+
+```bash
+pip install pyinstaller
+pyinstaller --onefile --windowed kirchhoff_plate_gui.py
+```
+
+Po dokončení bude spustitelný soubor ve složce `dist/` (např. `dist/kirchhoff_plate_gui.exe`).
+
 ## Hlavní okno
 
 Vstupní data se zadávají pomocí hlavního okna aplikace.
@@ -59,7 +71,7 @@ straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro v
 
 Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení grafů.
 
-Hlavní panel je potom neaktivní až do uzavření všech oken s grafy.
+Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech.
 
 Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$.
 
