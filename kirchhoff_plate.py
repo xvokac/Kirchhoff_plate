@@ -118,7 +118,7 @@ _validate_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
 N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
 
 report_file = os.getenv("KIRCHHOFF_REPORT_FILE", "kirchhoff_report.pdf")
-input_file = os.getenv("KIRCHHOFF_INPUT_FILE", "kirchhoff_input.json")
+input_file = os.getenv("KIRCHHOFF_INPUT_FILE", "temp.json")
 plots_dir = os.getenv("KIRCHHOFF_PLOTS_DIR", "kirchhoff_plots")
 
 
