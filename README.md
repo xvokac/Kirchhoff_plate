@@ -41,14 +41,16 @@ python kirchhoff_plate_gui.py
 
 ## Vytvoření `.exe` pomocí PyInstalleru
 
-Aplikace je připravená na spuštění výpočtu i po zabalení do jednoho `exe` souboru. Ve Windows lze doporučit příkazy:
+Aplikace je připravená na spuštění výpočtu i po zabalení do jednoho `exe` souboru. Ve Windows lze použít příkazy:
 
 ```bash
 pip install pyinstaller
 python -m PyInstaller --onefile --windowed kirchhoff_plate_gui.py
 ```
 
-Po dokončení bude spustitelný soubor ve složce `dist/` (např. `dist/kirchhoff_plate_gui.exe`).
+Po dokončení bude spustitelný soubor ve složce `dist/` (např. `dist/kirchhoff_plate_gui.exe`). 
+Je třeba ale potom počítat s jeho větší velikostí, protože obsahuje všechny knihovny, i ty co nutně nepotřebuje. 
+Proto může být vhodnější spouštět skript v programu Python.
 
 ## Hlavní okno
 
