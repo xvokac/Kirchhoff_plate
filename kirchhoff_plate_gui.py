@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QFormLayout,
     QLabel,
+    QLineEdit,
     QMainWindow,
     QMessageBox,
     QPushButton,
@@ -73,6 +74,11 @@ class KirchhoffWindow(QMainWindow):
         self.line_y_stop_input = self._create_double(DEFAULT_LINE_PAR_Y[1], -1e4, 1e4, 3)
         self.line_y_const_input = self._create_double(DEFAULT_LINE_PAR_Y[2], -1e4, 1e4, 3)
 
+        self.project_name_input = QLineEdit()
+        self.project_name_input.setPlaceholderText("např. deska_01")
+        self.project_name_input.setText("projekt_01")
+
+        form.addRow("Jméno projektu", self.project_name_input)
         form.addRow("Spojité zatížení q [kN/m²]", self.q_input)
         form.addRow("Tloušťka desky d [m]", self.d_input)
         form.addRow("Modul pružnosti E [kPa]", self.e_input)
@@ -191,6 +197,7 @@ class KirchhoffWindow(QMainWindow):
     def _collect_input_data(self):
         line_par_x, line_par_y = self._build_line_params()
         return {
+            "project_name": self.project_name_input.text().strip(),
             "q": self.q_input.value(),
             "lc": self.lc_input.value(),
             "d": self.d_input.value(),
@@ -203,6 +210,7 @@ class KirchhoffWindow(QMainWindow):
         }
 
     def _apply_input_data(self, data):
+        self.project_name_input.setText(str(data.get("project_name", "")))
         self.q_input.setValue(float(data["q"]))
         self.lc_input.setValue(float(data["lc"]))
         self.d_input.setValue(float(data["d"]))
@@ -226,10 +234,15 @@ class KirchhoffWindow(QMainWindow):
         self.line_y_const_input.setValue(float(line_par_y[2]))
 
     def save_input_to_json(self):
+        project_name = self.project_name_input.text().strip()
+        default_path = "kirchhoff_input.json"
+        if project_name:
+            default_path = str((Path.cwd() / project_name / "kirchhoff_input.json").resolve())
+
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Uložit zadání",
-            "kirchhoff_input.json",
+            default_path,
             "JSON files (*.json);;All files (*)",
         )
         if not file_path:
@@ -281,6 +294,22 @@ class KirchhoffWindow(QMainWindow):
         polygon, ulozeni = parsed
         line_par_x, line_par_y = self._build_line_params()
 
+        project_name = self.project_name_input.text().strip()
+        if not project_name:
+            QMessageBox.critical(self, "Chybí jméno projektu", "Vyplňte prosím pole 'Jméno projektu'.")
+            return
+
+        output_dir = Path.cwd() / project_name
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as error:
+            QMessageBox.critical(
+                self,
+                "Chyba vytvoření složky",
+                f"Nepodařilo se vytvořit složku projektu '{project_name}': {error}",
+            )
+            return
+
         env = os.environ.copy()
         env["KIRCHHOFF_Q"] = str(self.q_input.value())
         env["KIRCHHOFF_LC"] = str(self.lc_input.value())
@@ -292,6 +321,9 @@ class KirchhoffWindow(QMainWindow):
         env["KIRCHHOFF_ULOZENI"] = json.dumps(ulozeni)
         env["KIRCHHOFF_LINE_PAR_X"] = json.dumps(line_par_x)
         env["KIRCHHOFF_LINE_PAR_Y"] = json.dumps(line_par_y)
+        env["KIRCHHOFF_INPUT_FILE"] = str(output_dir / "kirchhoff_input.json")
+        env["KIRCHHOFF_PLOTS_DIR"] = str(output_dir / "kirchhoff_plots")
+        env["KIRCHHOFF_REPORT_FILE"] = str(output_dir / "kirchhoff_report.pdf")
 
         self.status.setText("Výpočet běží…")
         self.repaint()
@@ -303,7 +335,7 @@ class KirchhoffWindow(QMainWindow):
 
         self._solver_process = process
         self.status.setText(
-            "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní."
+            f"Výpočet byl spuštěn na pozadí. Výstupy budou ve složce: {output_dir}"
         )
 
     def _launch_solver_process(self, env):
