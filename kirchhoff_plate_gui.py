@@ -102,10 +102,11 @@ class KirchhoffWindow(QMainWindow):
 
         self.status = QLabel("Nastavte hodnoty a spusťte výpočet.")
 
-        run_button = QPushButton("Spustit výpočet")
-        run_button.clicked.connect(self.run_solver)
+        self.run_button = QPushButton("Spustit výpočet")
+        self.run_button.clicked.connect(self.run_solver)
+        self._solver_process = None
 
-        layout.addWidget(run_button)
+        layout.addWidget(self.run_button)
         layout.addWidget(self.status)
         self.setCentralWidget(central)
 
@@ -181,6 +182,10 @@ class KirchhoffWindow(QMainWindow):
         return line_par_x, line_par_y
 
     def run_solver(self):
+        if self._solver_process is not None and self._solver_process.poll() is None:
+            self.status.setText("Výpočet už běží. Počkejte na dokončení aktuálního běhu.")
+            return
+
         parsed = self._parse_edges_text()
         if parsed is None:
             return
@@ -208,6 +213,7 @@ class KirchhoffWindow(QMainWindow):
             self.status.setText("Výpočet selhal – nepodařilo se spustit výpočetní proces.")
             return
 
+        self._solver_process = process
         self.status.setText(
             "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní."
         )
@@ -219,19 +225,9 @@ class KirchhoffWindow(QMainWindow):
             cmd = [sys.executable, str(Path(__file__).resolve()), "--run-solver"]
 
         try:
-            creationflags = 0
-            if sys.platform.startswith("win"):
-                creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
-
-            return subprocess.Popen(
-                cmd,
-                env=env,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                start_new_session=True,
-                creationflags=creationflags,
-            )
+            # Důležité: proces nespouštíme jako "detached".
+            # U některých prostředí (hlavně Windows + matplotlib) to bránilo otevření grafických oken.
+            return subprocess.Popen(cmd, env=env)
         except OSError as error:
             QMessageBox.critical(self, "Chyba spuštění", f"Nepodařilo se spustit výpočet: {error}")
             return None
