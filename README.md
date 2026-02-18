@@ -58,6 +58,10 @@ python -O -m PyInstaller ^
   --onedir --windowed kirchhoff_plate_gui.py ^
   --upx-dir C:\upx  
 ```
+
+Při použití přepínače `--windowed` se neotevře konzolové černé okno, kde by mohly být zobrazována chybová hlášení. 
+A to v případě nekorektního zadání. Tyto výstupy se proto loují do souboru `kirchhoff_gui.log`.
+
 ## Hlavní okno
 
 Vstupní data se zadávají pomocí hlavního okna aplikace.
@@ -74,7 +78,7 @@ Hlavní okno obsahuje několik položek:
 - Geometrie desky - se zadává pomocí tabulky, každá řádek začíná souřadnicemi 
 vrcholu polygonu a následují boolen proměnné, které se váže k následující 
 straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro volný okraj desky, [1,1] vetknutí, [0,1] podmínka osy symetrie, [1,0] válcový kloub.
-- Parametry pro liniové grafy - je možné zadat úsečky rovnoběžnou s osou X a Y, pro kterou se vykreslí grafy průběhu dimenzačních mometů.
+- Parametry pro liniové grafy - je možné zadat úsečky rovnoběžnou s osou X a Y, pro kterou se vykreslí grafy průběhu dimenzačních mometů. Sořadnice musí být v dané oblasti řešení desky, jinak se výpočet programu zastaví a oznámí chybové hlášení, které se loguje také do `kirchhoff_gui.log`
 - Počet bodů liniového grafu - stanový počet bodů na úcečce, pro které se budou hledat výsledky v síti MKP.
 
 Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení grafů.
