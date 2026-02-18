@@ -151,14 +151,18 @@ class KirchhoffWindow(QMainWindow):
 
         self.run_button = QPushButton("Spustit výpočet")
         self.run_button.clicked.connect(self.run_solver)
+        self.mesh_button = QPushButton("Generovat síť")
+        self.mesh_button.clicked.connect(self.preview_mesh)
         self.save_button = QPushButton("Uložit zadání (JSON)")
         self.save_button.clicked.connect(self.save_input_to_json)
         self.load_button = QPushButton("Načíst zadání (JSON)")
         self.load_button.clicked.connect(self.load_input_from_json)
         self._solver_process = None
+        self._mesh_process = None
 
         layout.addWidget(self.save_button)
         layout.addWidget(self.load_button)
+        layout.addWidget(self.mesh_button)
         layout.addWidget(self.run_button)
         layout.addWidget(self.status)
         self.setCentralWidget(central)
@@ -350,6 +354,49 @@ class KirchhoffWindow(QMainWindow):
             )
             return
 
+        env = self._build_solver_env(polygon, ulozeni, line_par_x, line_par_y, output_dir)
+
+        self.status.setText("Výpočet běží…")
+        self.repaint()
+
+        process = self._launch_solver_process(env)
+        if process is None:
+            self.status.setText("Výpočet selhal – nepodařilo se spustit výpočetní proces.")
+            return
+
+        self._solver_process = process
+        self.status.setText(
+            f"Výpočet byl spuštěn na pozadí. Výstupy budou ve složce: {output_dir}"
+        )
+
+    def preview_mesh(self):
+        if self._mesh_process is not None and self._mesh_process.poll() is None:
+            self.status.setText("Náhled sítě už běží. Zavřete okno sítě a zkuste to znovu.")
+            return
+
+        parsed = self._parse_edges_text()
+        if parsed is None:
+            return
+
+        polygon, ulozeni = parsed
+        line_par_x, line_par_y = self._build_line_params()
+
+        output_dir = Path.cwd() / "_mesh_preview"
+        env = self._build_solver_env(polygon, ulozeni, line_par_x, line_par_y, output_dir)
+        env["KIRCHHOFF_PREVIEW_MESH"] = "1"
+
+        self.status.setText("Generuji síť…")
+        self.repaint()
+
+        process = self._launch_solver_process(env)
+        if process is None:
+            self.status.setText("Náhled sítě selhal – nepodařilo se spustit výpočetní proces.")
+            return
+
+        self._mesh_process = process
+        self.status.setText("Otevřen náhled sítě. Po kontrole zavřete okno a stiskněte 'Spustit výpočet'.")
+
+    def _build_solver_env(self, polygon, ulozeni, line_par_x, line_par_y, output_dir):
         env = os.environ.copy()
         env["KIRCHHOFF_Q"] = str(self.q_input.value())
         env["KIRCHHOFF_LC"] = str(self.lc_input.value())
@@ -364,19 +411,7 @@ class KirchhoffWindow(QMainWindow):
         env["KIRCHHOFF_INPUT_FILE"] = str(output_dir / "kirchhoff_input.json")
         env["KIRCHHOFF_PLOTS_DIR"] = str(output_dir / "kirchhoff_plots")
         env["KIRCHHOFF_REPORT_FILE"] = str(output_dir / "kirchhoff_report.pdf")
-
-        self.status.setText("Výpočet běží…")
-        self.repaint()
-
-        process = self._launch_solver_process(env)
-        if process is None:
-            self.status.setText("Výpočet selhal – nepodařilo se spustit výpočetní proces.")
-            return
-
-        self._solver_process = process
-        self.status.setText(
-            f"Výpočet byl spuštěn na pozadí. Výstupy budou ve složce: {output_dir}"
-        )
+        return env
 
     def _launch_solver_process(self, env):
         if getattr(sys, "frozen", False):
