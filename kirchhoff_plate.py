@@ -688,7 +688,7 @@ def main():
     # Zobrazit síť co nejdříve před dalším výpočtem.
     fig_mesh = visualize_mesh(m, np.array([], dtype=int), basis, line_par_x, line_par_y)
     plt.show(block=False)
-    plt.pause(2)
+    plt.pause(10)
 
     # Včasné ověření, že linie grafů leží uvnitř oblasti.
     validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
