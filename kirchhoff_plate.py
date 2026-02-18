@@ -439,6 +439,7 @@ def visualize_probe_x(query_pts_x, p0_probes_x,mx_dim_lower, mx_dim_upper, line_
     fig, ax = plt.subplots()
     ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_lower, color='blue', label='lower')
     ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_upper, color='red', label='upper')
+    ax.plot(query_pts_x[0], p0_probes_x @ mx, color='gray', linestyle=':', label='m_x')
     ax.set_title(f'Moment $M_{{x, dim}}(x, y={line_par_x[2]:.2f})$ [kNm]')
     ax.set_xlabel('x [m]')
     ax.invert_yaxis()  #záporný moment nahoru
@@ -455,6 +456,7 @@ def visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_
     fig, ax = plt.subplots()
     ax.plot(query_pts_y[1], p0_probes_y @ my_dim_lower, color='blue', label='lower')
     ax.plot(query_pts_y[1], p0_probes_y @ my_dim_upper, color='red', label='upper')
+    ax.plot(query_pts_y[0], p0_probes_y @ my, color='gray', linestyle=':', label='m_y')
     ax.set_title(f'Moment $M_{{y, dim}}(x={line_par_y[2]:.2f}, y)$ [kNm]')
     ax.set_xlabel('y [m]')
     ax.invert_yaxis()  #záporný moment nahoru
