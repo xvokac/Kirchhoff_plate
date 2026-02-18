@@ -629,6 +629,29 @@ def save_plot_images(output_dir, figures):
         fig.savefig(os.path.join(output_dir, f"plot_{i:02d}.png"), dpi=200, bbox_inches='tight')
 
 
+def _build_edges_text(polygon_points, ulozeni_flags):
+    lines = []
+    for (x_coord, y_coord), (w_flag, phi_n_flag) in zip(polygon_points, ulozeni_flags):
+        lines.append(f"{x_coord},{y_coord},{int(w_flag)},{int(phi_n_flag)}")
+    return "\n".join(lines)
+
+
+def _build_saved_input_data(input_path):
+    project_name = os.path.basename(os.path.dirname(os.path.abspath(input_path)))
+    return {
+        "project_name": project_name,
+        "q": q,
+        "lc": lc,
+        "d": d,
+        "E": E,
+        "nu": nu,
+        "n_query_pts": N_query_pts,
+        "edges_text": _build_edges_text(polygon.tolist(), ulozeni.astype(int).tolist()),
+        "line_par_x": line_par_x.tolist(),
+        "line_par_y": line_par_y.tolist(),
+    }
+
+
 def main():
     figures = [
         visualize_mesh(m, D, basis),
@@ -640,18 +663,7 @@ def main():
         visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_par_y),
     ]
 
-    input_data = {
-        "q": q,
-        "polygon": polygon.tolist(),
-        "ulozeni": ulozeni.astype(int).tolist(),
-        "lc": lc,
-        "d": d,
-        "E": E,
-        "nu": nu,
-        "line_par_x": line_par_x.tolist(),
-        "line_par_y": line_par_y.tolist(),
-        "N_query_pts": N_query_pts,
-    }
+    input_data = _build_saved_input_data(input_file)
 
     save_input_assignment(input_file, input_data)
     save_plot_images(plots_dir, figures)
