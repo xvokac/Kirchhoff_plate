@@ -102,10 +102,11 @@ class KirchhoffWindow(QMainWindow):
 
         self.status = QLabel("Nastavte hodnoty a spusťte výpočet.")
 
-        run_button = QPushButton("Spustit výpočet")
-        run_button.clicked.connect(self.run_solver)
+        self.run_button = QPushButton("Spustit výpočet")
+        self.run_button.clicked.connect(self.run_solver)
+        self._solver_process = None
 
-        layout.addWidget(run_button)
+        layout.addWidget(self.run_button)
         layout.addWidget(self.status)
         self.setCentralWidget(central)
 
@@ -181,6 +182,10 @@ class KirchhoffWindow(QMainWindow):
         return line_par_x, line_par_y
 
     def run_solver(self):
+        if self._solver_process is not None and self._solver_process.poll() is None:
+            self.status.setText("Výpočet už běží. Počkejte na dokončení aktuálního běhu.")
+            return
+
         parsed = self._parse_edges_text()
         if parsed is None:
             return
@@ -200,29 +205,49 @@ class KirchhoffWindow(QMainWindow):
         env["KIRCHHOFF_LINE_PAR_X"] = json.dumps(line_par_x)
         env["KIRCHHOFF_LINE_PAR_Y"] = json.dumps(line_par_y)
 
-        script_path = Path(__file__).with_name("kirchhoff_plate.py")
-
         self.status.setText("Výpočet běží…")
         self.repaint()
 
-        result = subprocess.run(
-            [sys.executable, str(script_path)],
-            env=env,
-            capture_output=True,
-            text=True,
+        process = self._launch_solver_process(env)
+        if process is None:
+            self.status.setText("Výpočet selhal – nepodařilo se spustit výpočetní proces.")
+            return
+
+        self._solver_process = process
+        self.status.setText(
+            "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní."
         )
 
-        if result.returncode == 0:
-            self.status.setText("Hotovo. Výsledek byl spočten, grafy se otevřely v samostatných oknech. Výsledek byl zapsán do souboru.")
+    def _launch_solver_process(self, env):
+        if getattr(sys, "frozen", False):
+            cmd = [sys.executable, "--run-solver"]
         else:
-            self.status.setText("Výpočet selhal – podrobnosti jsou vypsané v konzoli.")
-            print(result.stdout)
-            print(result.stderr)
+            cmd = [sys.executable, str(Path(__file__).resolve()), "--run-solver"]
+
+        try:
+            # Důležité: proces nespouštíme jako "detached".
+            # U některých prostředí (hlavně Windows + matplotlib) to bránilo otevření grafických oken.
+            return subprocess.Popen(cmd, env=env)
+        except OSError as error:
+            QMessageBox.critical(self, "Chyba spuštění", f"Nepodařilo se spustit výpočet: {error}")
+            return None
 
 
-if __name__ == "__main__":
+def run_solver_entrypoint():
+    import kirchhoff_plate  # noqa: F401
+
+
+def main():
+    if "--run-solver" in sys.argv:
+        run_solver_entrypoint()
+        return
+
     app = QApplication(sys.argv)
     window = KirchhoffWindow()
     window.resize(760, 820)
     window.show()
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()
