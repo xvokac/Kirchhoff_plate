@@ -70,6 +70,7 @@ Vstupní data se zadávají pomocí hlavního okna aplikace.
 
 Hlavní okno obsahuje několik položek:
 
+- Jméno projektu - vytvoří v aktuálním adresáři podadresář s tímto názvem pro vstupní a výstupní soubory
 - Spojité zatížení na desku
 - Tloušťka desky
 - Modul pružnosti
