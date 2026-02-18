@@ -629,7 +629,7 @@ def save_plot_images(output_dir, figures):
         fig.savefig(os.path.join(output_dir, f"plot_{i:02d}.png"), dpi=200, bbox_inches='tight')
 
 
-if __name__ == "__main__":
+def main():
     figures = [
         visualize_mesh(m, D, basis),
         visualize_w(m,basis,w),
@@ -661,4 +661,8 @@ if __name__ == "__main__":
     print(f"Uložen report: {report_file}")
 
     plt.show() #zobrazí všechny grafy najednou
-    
+
+
+if __name__ == "__main__":
+    main()
+
