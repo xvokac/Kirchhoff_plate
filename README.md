@@ -60,7 +60,7 @@ python -O -m PyInstaller ^
 ```
 
 Při použití přepínače `--windowed` se neotevře konzolové černé okno, kde by mohla být zobrazována chybová hlášení. 
-A to v případě nekorektního zadání. Tyto výstupy se proto loují do souboru `kirchhoff_gui.log`.
+A to v případě nekorektního zadání. Tyto výstupy se proto logují do souboru `kirchhoff_gui.log`.
 
 ## Hlavní okno
 
