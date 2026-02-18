@@ -9,6 +9,7 @@ from pathlib import Path
 from PyQt5.QtWidgets import (
     QApplication,
     QDoubleSpinBox,
+    QFileDialog,
     QFormLayout,
     QLabel,
     QMainWindow,
@@ -104,8 +105,14 @@ class KirchhoffWindow(QMainWindow):
 
         self.run_button = QPushButton("Spustit výpočet")
         self.run_button.clicked.connect(self.run_solver)
+        self.save_button = QPushButton("Uložit zadání (JSON)")
+        self.save_button.clicked.connect(self.save_input_to_json)
+        self.load_button = QPushButton("Načíst zadání (JSON)")
+        self.load_button.clicked.connect(self.load_input_from_json)
         self._solver_process = None
 
+        layout.addWidget(self.save_button)
+        layout.addWidget(self.load_button)
         layout.addWidget(self.run_button)
         layout.addWidget(self.status)
         self.setCentralWidget(central)
@@ -180,6 +187,87 @@ class KirchhoffWindow(QMainWindow):
             self.line_y_const_input.value(),
         ]
         return line_par_x, line_par_y
+
+    def _collect_input_data(self):
+        line_par_x, line_par_y = self._build_line_params()
+        return {
+            "q": self.q_input.value(),
+            "lc": self.lc_input.value(),
+            "d": self.d_input.value(),
+            "E": self.e_input.value(),
+            "nu": self.nu_input.value(),
+            "n_query_pts": self.n_pts_input.value(),
+            "edges_text": self.edges_input.toPlainText(),
+            "line_par_x": line_par_x,
+            "line_par_y": line_par_y,
+        }
+
+    def _apply_input_data(self, data):
+        self.q_input.setValue(float(data["q"]))
+        self.lc_input.setValue(float(data["lc"]))
+        self.d_input.setValue(float(data["d"]))
+        self.e_input.setValue(float(data["E"]))
+        self.nu_input.setValue(float(data["nu"]))
+        self.n_pts_input.setValue(int(data["n_query_pts"]))
+
+        self.edges_input.setPlainText(str(data["edges_text"]))
+
+        line_par_x = data["line_par_x"]
+        line_par_y = data["line_par_y"]
+        if len(line_par_x) != 3 or len(line_par_y) != 3:
+            raise ValueError("line_par_x a line_par_y musí mít přesně 3 prvky.")
+
+        self.line_x_start_input.setValue(float(line_par_x[0]))
+        self.line_x_stop_input.setValue(float(line_par_x[1]))
+        self.line_x_const_input.setValue(float(line_par_x[2]))
+
+        self.line_y_start_input.setValue(float(line_par_y[0]))
+        self.line_y_stop_input.setValue(float(line_par_y[1]))
+        self.line_y_const_input.setValue(float(line_par_y[2]))
+
+    def save_input_to_json(self):
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Uložit zadání",
+            "kirchhoff_input.json",
+            "JSON files (*.json);;All files (*)",
+        )
+        if not file_path:
+            return
+
+        payload = self._collect_input_data()
+        try:
+            with open(file_path, "w", encoding="utf-8") as file:
+                json.dump(payload, file, ensure_ascii=False, indent=2)
+        except OSError as error:
+            QMessageBox.critical(self, "Chyba uložení", f"Nepodařilo se uložit soubor: {error}")
+            return
+
+        self.status.setText(f"Zadání bylo uloženo do: {file_path}")
+
+    def load_input_from_json(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Načíst zadání",
+            "",
+            "JSON files (*.json);;All files (*)",
+        )
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                data = json.load(file)
+            self._apply_input_data(data)
+        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+            QMessageBox.critical(
+                self,
+                "Chyba načtení",
+                f"Soubor se nepodařilo načíst nebo má neplatný formát:\n{error}",
+            )
+            return
+
+        self.status.setText(f"Zadání bylo načteno ze souboru: {file_path}")
 
     def run_solver(self):
         if self._solver_process is not None and self._solver_process.poll() is None:
