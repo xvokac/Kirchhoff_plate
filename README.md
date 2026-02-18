@@ -79,6 +79,8 @@ straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro v
 
 Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení grafů.
 
+Pomocí tlačítek **Uložit zadání (JSON)** a **Načíst zadání (JSON)** lze vstupní data uložit do souboru a při dalším spuštění programu je znovu načíst.
+
 Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech. Nový výpočet je ale možné spustit až po uzavření všech grafických oken.
 
 Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$.
@@ -104,7 +106,6 @@ Výsledky se zapíší do aktuálního adresáře do souboru `kirchhoff_report.p
 ![input data](kirchhoff_plots/plot_06.png)
 
 ![input data](kirchhoff_plots/plot_07.png)
-
 
 
 
