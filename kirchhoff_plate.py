@@ -636,6 +636,40 @@ def _build_edges_text(polygon_points, ulozeni_flags):
     return "\n".join(lines)
 
 
+def _field_extrema_with_location(field_values, dof_locations):
+    values = np.asarray(field_values).ravel()
+    x_coords = np.asarray(dof_locations[0]).ravel()
+    y_coords = np.asarray(dof_locations[1]).ravel()
+
+    min_idx = int(np.argmin(values))
+    max_idx = int(np.argmax(values))
+
+    return {
+        "min": {
+            "value": float(values[min_idx]),
+            "x": float(x_coords[min_idx]),
+            "y": float(y_coords[min_idx]),
+        },
+        "max": {
+            "value": float(values[max_idx]),
+            "x": float(x_coords[max_idx]),
+            "y": float(y_coords[max_idx]),
+        },
+    }
+
+
+def _build_field_extrema_data():
+    return {
+        "mx": _field_extrema_with_location(mx, basis_p0.doflocs),
+        "my": _field_extrema_with_location(my, basis_p0.doflocs),
+        "mxy": _field_extrema_with_location(mxy, basis_p0.doflocs),
+        "mx_dim_lower": _field_extrema_with_location(mx_dim_lower, basis_p0.doflocs),
+        "my_dim_lower": _field_extrema_with_location(my_dim_lower, basis_p0.doflocs),
+        "mx_dim_upper": _field_extrema_with_location(mx_dim_upper, basis_p0.doflocs),
+        "my_dim_upper": _field_extrema_with_location(my_dim_upper, basis_p0.doflocs),
+    }
+
+
 def _build_saved_input_data(input_path):
     project_name = os.path.basename(os.path.dirname(os.path.abspath(input_path)))
     return {
@@ -649,6 +683,7 @@ def _build_saved_input_data(input_path):
         "edges_text": _build_edges_text(polygon.tolist(), ulozeni.astype(int).tolist()),
         "line_par_x": line_par_x.tolist(),
         "line_par_y": line_par_y.tolist(),
+        "field_extrema": _build_field_extrema_data(),
     }
 
 
