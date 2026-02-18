@@ -731,9 +731,9 @@ def main():
 def preview_mesh_main():
     m, basis, _, _ = compute_plate_response()
     visualize_mesh(m, np.array([], dtype=int), basis, line_par_x, line_par_y)
-    plt.show
     validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
     validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
+    plt.show()
     
     
 
