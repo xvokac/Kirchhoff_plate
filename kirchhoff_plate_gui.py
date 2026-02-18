@@ -215,7 +215,7 @@ class KirchhoffWindow(QMainWindow):
 
         self._solver_process = process
         self.status.setText(
-            "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní."
+            "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní. Další výpočet možný po uzavření všech grafických oken."
         )
 
     def _launch_solver_process(self, env):
