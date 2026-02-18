@@ -122,105 +122,63 @@ input_file = os.getenv("KIRCHHOFF_INPUT_FILE", "kirchhoff_input.json")
 plots_dir = os.getenv("KIRCHHOFF_PLOTS_DIR", "kirchhoff_plots")
 
 
-"""
-## GENEROVÁNÍ SÍTĚ V GMSH #################################################################
-"""
+def compute_plate_response():
+    """Vytvoří síť, sestaví úlohu a spočte odpověď desky."""
 
-gmsh.initialize()
+    gmsh.initialize()
+    try:
+        gmsh.model.add("t2")
 
-#New model
-gmsh.model.add("t2")
+        point_ids = []
+        for i, (x, y) in enumerate(polygon):
+            point_id = gmsh.model.geo.addPoint(x, y, 0, lc, i + 1)
+            point_ids.append(point_id)
 
-#Nodes
-# Přidání bodů z polygonu
-point_ids = []
-for i, (x, y) in enumerate(polygon):
-    point_id = gmsh.model.geo.addPoint(x, y, 0, lc, i+1)
-    point_ids.append(point_id)
+        line_ids = []
+        for i in range(len(point_ids)):
+            start_point = point_ids[i]
+            end_point = point_ids[(i + 1) % len(point_ids)]
+            line_id = gmsh.model.geo.addLine(start_point, end_point)
+            line_ids.append(line_id)
 
-# lines
-# Přidání úseček mezi body
-line_ids = []
-for i in range(len(point_ids)):
-    start_point = point_ids[i]
-    end_point = point_ids[(i+1) % len(point_ids)]  # Cykluje zpět k prvnímu bodu
-    line_id = gmsh.model.geo.addLine(start_point, end_point)
-    line_ids.append(line_id)
+        gmsh.model.geo.addCurveLoop(line_ids, 1)
+        plane_surface_id = gmsh.model.geo.addPlaneSurface([1], 1)
+        gmsh.model.geo.synchronize()
 
+        for i, line_id in enumerate(line_ids, start=1):
+            line_tag = gmsh.model.addPhysicalGroup(1, [line_id])
+            gmsh.model.setPhysicalName(1, line_tag, f"boundary_line{i}")
 
-#CurveLoop
-gmsh.model.geo.addCurveLoop(line_ids, 1)
+        surface_tag = gmsh.model.addPhysicalGroup(2, [plane_surface_id])
+        gmsh.model.setPhysicalName(2, surface_tag, "Surface")
 
-#PlaneSurface
-plane_surface_id = gmsh.model.geo.addPlaneSurface([1], 1)
+        gmsh.model.mesh.generate(2)
+        gmsh.option.setNumber("Mesh.MshFileVersion", 2.0)
+        gmsh.write("deska.msh")
+    finally:
+        gmsh.finalize()
 
-#synchronize
-gmsh.model.geo.synchronize()
- 
-# Přiřazení tagů pro linie do fyzikálního seskupení v cyklu
-#(pouze s dimenzí 1 pro linie)
-for i, line_id in enumerate(line_ids, start=1):
-    line_tag = gmsh.model.addPhysicalGroup(1, [line_id])
-    gmsh.model.setPhysicalName(1, line_tag, f"boundary_line{i}")
+    msh = meshio.read("deska.msh")
+    points = msh.points[:, :2]
+    cells = msh.cells_dict["triangle"]
 
-# Physical group for the surface (2D)
-surface_tag = gmsh.model.addPhysicalGroup(2, [plane_surface_id])
-gmsh.model.setPhysicalName(2, surface_tag, "Surface")
+    m = MeshTri(points.T, cells.T)
+    basis = Basis(m, ElementTriMorley())
 
-#generate
-gmsh.model.mesh.generate(2)
+    def C(T):
+        return E / (1 + nu) * (T + nu / (1 - nu) * eye(trace(T), 2))
 
-# Nastavení formátu MSH na verzi 2
-gmsh.option.setNumber("Mesh.MshFileVersion", 2.0)
+    @BilinearForm
+    def bilinf(u, v, _):
+        return d ** 3 / 12.0 * ddot(C(dd(u)), dd(v))
 
-#Write mesh
-gmsh.write("deska.msh")
+    @LinearForm
+    def load(v, _):
+        return q * v
 
-""" pro vizualizaci sítě v gmsh je možné pouřít následující kód - není nutné,
-dále se vizualizuje včetně stupňů volnosti určených ke sttické kondenzaci.
-
-#Visualize
-if '-nopopup' not in sys.argv:
-    gmsh.fltk.run()
-    
-"""
-
-gmsh.finalize()
-
-"""
-## ZPRACOVÁNÍ SCIKIT-FEM ######################################################################
-"""
-
-# Načtení Gmsh sítě z .msh souboru
-msh = meshio.read("deska.msh")
-
-# Převod na formát scikit-fem
-points = msh.points[:, :2]  # Only use the 2D points (x, y)
-cells = msh.cells_dict["triangle"]
-
-# Vytvoření MeshTri sítě
-m = MeshTri(points.T, cells.T)
-basis = Basis(m, ElementTriMorley())
-
-
-# Elasticita desky
-def C(T):
-    return E / (1 + nu) * (T + nu / (1 - nu) * eye(trace(T), 2))
-
-# Bilineární forma
-@BilinearForm
-def bilinf(u, v, _):
-    return d ** 3 / 12.0 * ddot(C(dd(u)), dd(v))
-
-# Zatížení
-@LinearForm
-def load(v, _):
-    return q * v
-
-
-# Sestavení soustavy
-K = bilinf.assemble(basis)
-f = load.assemble(basis)
+    K = bilinf.assemble(basis)
+    f = load.assemble(basis)
+    return m, basis, K, f
 
 
 """
@@ -305,133 +263,123 @@ def validate_query_line_in_polygon(line_params, axis, polygon, n_samples=100):
                 f"Linie pro {axis}-graf není celá uvnitř oblasti. Problematický bod: {point.tolist()}"
             )
 
-# Ruční přiřazení okrajových podmínek
-# Kontrola umístění bodů s DOF na hranici s okrajovou podmínkou
-conden = np.zeros(basis.doflocs[0].shape)
-# 1) Okrajové podmínky pro pruhyb
-# ozn. stupnu volnosti ve basis.dofs.nodal_dofs
-for i in range(basis.dofs.nodal_dofs.shape[1]): 
-    point = [basis.doflocs[0][basis.dofs.nodal_dofs[0][i]],
-             basis.doflocs[1][basis.dofs.nodal_dofs[0][i]] ] #bod s DOF nodal
-    for j in range(polygon.shape[0]):     #pro kazdou hranici
-        if ulozeni[j][0]:    #je li zabraneno pruhybu
-            if j==(polygon.shape[0]-1): #vyber koncove bodu strany polynomu
-                A=[polygon[j][0], polygon[j][1]]
-                B=[polygon[0][0], polygon[0][1]]
-            else:
-                A=[polygon[j][0], polygon[j][1]]
-                B=[polygon[j+1][0], polygon[j+1][1]]
-            if is_point_on_segment(point, A, B, tol=1e-9):
-                conden[basis.dofs.nodal_dofs[0][i]] = 1
-# 2) Okrajové podmínky pro natoceni
-# ozn. stupnu volnosti ve basis.dofs.facet_dofs
-for i in range(basis.dofs.facet_dofs.shape[1]): 
-    point = [basis.doflocs[0][basis.dofs.facet_dofs[0][i]],
-             basis.doflocs[1][basis.dofs.facet_dofs[0][i]] ] #bod s DOF nodal
-    for j in range(polygon.shape[0]):     #pro kazdou hranici            
-        if ulozeni[j][1]:    #je li zabraneno natoceni
-            if j==(polygon.shape[0]-1): #vyber koncove bodu strany polynomu
-                A=[polygon[j][0], polygon[j][1]]
-                B=[polygon[0][0], polygon[0][1]]
-            else:
-                A=[polygon[j][0], polygon[j][1]]
-                B=[polygon[j+1][0], polygon[j+1][1]]
-            if is_point_on_segment(point, A, B, tol=1e-9):
-                conden[basis.dofs.facet_dofs[0][i]] = 1
-##Převedení na integer
-conden = conden.astype(int) #hodnota je 1 pro staticky kondenzovane pozice v K a f
-#D - jaké stupně volnosti (indexi) se budou staticky kondenzovat
-D = np.where(conden == 1)[0]
+def solve_plate_system(m, basis, K, f):
+    # Ruční přiřazení okrajových podmínek
+    # Kontrola umístění bodů s DOF na hranici s okrajovou podmínkou
+    conden = np.zeros(basis.doflocs[0].shape)
+    # 1) Okrajové podmínky pro pruhyb
+    # ozn. stupnu volnosti ve basis.dofs.nodal_dofs
+    for i in range(basis.dofs.nodal_dofs.shape[1]):
+        point = [basis.doflocs[0][basis.dofs.nodal_dofs[0][i]],
+                 basis.doflocs[1][basis.dofs.nodal_dofs[0][i]]]
+        for j in range(polygon.shape[0]):
+            if ulozeni[j][0]:
+                if j == (polygon.shape[0] - 1):
+                    A = [polygon[j][0], polygon[j][1]]
+                    B = [polygon[0][0], polygon[0][1]]
+                else:
+                    A = [polygon[j][0], polygon[j][1]]
+                    B = [polygon[j + 1][0], polygon[j + 1][1]]
+                if is_point_on_segment(point, A, B, tol=1e-9):
+                    conden[basis.dofs.nodal_dofs[0][i]] = 1
 
-# řešení soustavy rovnic se staticky kondenzovanou maticí K a vektorem f
-w = solve(*condense(K, f, D=D))
+    # 2) Okrajové podmínky pro natoceni
+    # ozn. stupnu volnosti ve basis.dofs.facet_dofs
+    for i in range(basis.dofs.facet_dofs.shape[1]):
+        point = [basis.doflocs[0][basis.dofs.facet_dofs[0][i]],
+                 basis.doflocs[1][basis.dofs.facet_dofs[0][i]]]
+        for j in range(polygon.shape[0]):
+            if ulozeni[j][1]:
+                if j == (polygon.shape[0] - 1):
+                    A = [polygon[j][0], polygon[j][1]]
+                    B = [polygon[0][0], polygon[0][1]]
+                else:
+                    A = [polygon[j][0], polygon[j][1]]
+                    B = [polygon[j + 1][0], polygon[j + 1][1]]
+                if is_point_on_segment(point, A, B, tol=1e-9):
+                    conden[basis.dofs.facet_dofs[0][i]] = 1
 
-# Výpočet odvozených parametrů pro výpočet dimenzačních momentů
-# Výpočet gradientu (natočení průřezu)
-interp_grad = basis.interpolate(w).grad #určí gradenty v integračních bodech
-# interp_grad[0] je ∂w/∂x, interp_grad[1] je ∂w/∂y - po prvku je to lineární funkce souřadnic x a y
-phi_x = interp_grad[0]  # Natočení ve směru osy x 
-phi_y = interp_grad[1]  # Natočení ve směru osy y
-# Souřadnice integracnich bodu
-int_points_loc, int_weights  = basis.quadrature #lokální sořadnice referenčního prvku a jeho váhy
-int_points_gl = basis.mapping.F(int_points_loc) #mapování na síť prvků - globální souřadnice
-# Výpočet grad phi_x a grad phi_y...
-"""
-Jsou dány phi_x a phi_y v integračních bodech. Na prvku jsou to lineární funce.
-Pokud chci gradient těchto funkcí, najdu ze 3 bodů řešením lineární sosutavy předpis
-lineární funkce phi_x(x,y) = x * phi_xx + y * phi_xy + 1 * konst1 (dosadit  pro 3 body z 6 možných)
-a rovněž        phi_y(x,y) = x * phi_yx + y * phi_yy + 1 * konst2 (dosadit  pro 3 body)
-Řešením těchto dvou soustav rovnic jsou koeficienty phi_xx, phi_yy, phi_xy phi_yx, které jsou na prvku konstantní.
-Tyto hodnoty lze potom předepsat na integrační body prvky jako další pole a dále s němi pracovat
-pro stanoveni ohybovych momentu.
-"""
-phi_xx = np.zeros_like(phi_x) #nulove matice
-phi_yy = np.zeros_like(phi_x)
-phi_xy = np.zeros_like(phi_x)
-phi_yx = np.zeros_like(phi_x)
-for i in range(int_points_gl.shape[1]):
-    A = np.array([[int_points_gl[0][i][0], int_points_gl[1][i][0], 1],
-                 [int_points_gl[0][i][1], int_points_gl[1][i][1], 1],
-                 [int_points_gl[0][i][2], int_points_gl[1][i][2], 1],
-                 ])# 3 body (souřadnice x, y) na jednom prvku do soustavy rovnic
-    b_phi_x = np.array([ [ phi_x[i][0] ],
-                        [ phi_x[i][1] ],
-                        [ phi_x[i][2] ],
-                        ])# hodnoty phi_x v integračních bodech - prava strana rovnice
-    b_phi_y = np.array([ [ phi_y[i][0] ],
-                        [ phi_y[i][1] ],
-                        [ phi_y[i][2] ],
-                        ])# hodnoty phi_y v integračních bodech - prava strana rovnice
-    # Řešení soustav pro phi_x a phi_y
-    solution_phi_x = np.linalg.solve(A, b_phi_x)  # [a_x, b_x, c_x]
-    solution_phi_y = np.linalg.solve(A, b_phi_y)  # [a_y, b_y, c_y]
-    # Gradienty:
-    phi_xx[i,:] = solution_phi_x[0]  # a_x
-    phi_xy[i,:]  = solution_phi_x[1]  # b_x
-    phi_yx[i,:]  = solution_phi_y[0]  # a_y
-    phi_yy[i,:]  = solution_phi_y[1]  # b_y
+    conden = conden.astype(int)
+    D = np.where(conden == 1)[0]
 
+    # řešení soustavy rovnic se staticky kondenzovanou maticí K a vektorem f
+    w = solve(*condense(K, f, D=D))
 
-# ohybove momenty
-Dpl = E * d ** 3/(12 * (1 - nu ** 2)) # Deskovou tuhost D tady značím Dpl (proměnná D ve scikit-fem jsou stupně volnosti ke statické kondenzaci)
-M_x = -Dpl * (phi_xx + nu * phi_yy)  
-M_y = -Dpl * (phi_yy + nu * phi_xx)  
-M_xy = -Dpl * (1-nu) * 0.5*(phi_xy + phi_yx)  
+    interp_grad = basis.interpolate(w).grad
+    phi_x = interp_grad[0]
+    phi_y = interp_grad[1]
+    int_points_loc, _ = basis.quadrature
+    int_points_gl = basis.mapping.F(int_points_loc)
 
-# dimenzační momenty
-M_x_dim_lower = M_x + np.abs(M_xy)
-M_x_dim_upper = M_x - np.abs(M_xy)
-M_y_dim_lower = M_y + np.abs(M_xy)
-M_y_dim_upper = M_y - np.abs(M_xy)
+    phi_xx = np.zeros_like(phi_x)
+    phi_yy = np.zeros_like(phi_x)
+    phi_xy = np.zeros_like(phi_x)
+    phi_yx = np.zeros_like(phi_x)
+    for i in range(int_points_gl.shape[1]):
+        A = np.array([[int_points_gl[0][i][0], int_points_gl[1][i][0], 1],
+                      [int_points_gl[0][i][1], int_points_gl[1][i][1], 1],
+                      [int_points_gl[0][i][2], int_points_gl[1][i][2], 1]])
+        b_phi_x = np.array([[phi_x[i][0]], [phi_x[i][1]], [phi_x[i][2]]])
+        b_phi_y = np.array([[phi_y[i][0]], [phi_y[i][1]], [phi_y[i][2]]])
 
-# Zavedeni prvků P0 - momenty na prvcích - konstanty po prvku
-basis_p0 = basis.with_element(ElementTriP0())
-mx = basis_p0.project(M_x)
-my = basis_p0.project(M_y)
-mxy = basis_p0.project(M_xy)
-mx_dim_lower = basis_p0.project(M_x_dim_lower)
-my_dim_lower = basis_p0.project(M_y_dim_lower)
-mx_dim_upper = basis_p0.project(M_x_dim_upper)
-my_dim_upper = basis_p0.project(M_y_dim_upper)
+        solution_phi_x = np.linalg.solve(A, b_phi_x)
+        solution_phi_y = np.linalg.solve(A, b_phi_y)
 
-# Příprava pro zobrazení grafů podél linií
-validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
-validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
+        phi_xx[i, :] = solution_phi_x[0]
+        phi_xy[i, :] = solution_phi_x[1]
+        phi_yx[i, :] = solution_phi_y[0]
+        phi_yy[i, :] = solution_phi_y[1]
 
-query_pts_x = np.vstack([
-    np.linspace(line_par_x[0],line_par_x[1],N_query_pts),  # x[0] coordinate values - proměnné x
-    line_par_x[2]*np.ones(N_query_pts),  # x[1] coordinate values - konstantní y
-])
-p0_probes_x = basis_p0.probes(query_pts_x)
+    Dpl = E * d ** 3 / (12 * (1 - nu ** 2))
+    M_x = -Dpl * (phi_xx + nu * phi_yy)
+    M_y = -Dpl * (phi_yy + nu * phi_xx)
+    M_xy = -Dpl * (1 - nu) * 0.5 * (phi_xy + phi_yx)
 
-query_pts_y = np.vstack([
-    line_par_y[2]*np.ones(N_query_pts),  # x[0] coordinate values - konstantní x
-    np.linspace(line_par_y[0],line_par_y[1],N_query_pts),  # x[1] coordinate values - proměnné y
-])
-p0_probes_y = basis_p0.probes(query_pts_y)
+    M_x_dim_lower = M_x + np.abs(M_xy)
+    M_x_dim_upper = M_x - np.abs(M_xy)
+    M_y_dim_lower = M_y + np.abs(M_xy)
+    M_y_dim_upper = M_y - np.abs(M_xy)
+
+    basis_p0 = basis.with_element(ElementTriP0())
+    mx = basis_p0.project(M_x)
+    my = basis_p0.project(M_y)
+    mxy = basis_p0.project(M_xy)
+    mx_dim_lower = basis_p0.project(M_x_dim_lower)
+    my_dim_lower = basis_p0.project(M_y_dim_lower)
+    mx_dim_upper = basis_p0.project(M_x_dim_upper)
+    my_dim_upper = basis_p0.project(M_y_dim_upper)
+
+    query_pts_x = np.vstack([
+        np.linspace(line_par_x[0], line_par_x[1], N_query_pts),
+        line_par_x[2] * np.ones(N_query_pts),
+    ])
+    p0_probes_x = basis_p0.probes(query_pts_x)
+
+    query_pts_y = np.vstack([
+        line_par_y[2] * np.ones(N_query_pts),
+        np.linspace(line_par_y[0], line_par_y[1], N_query_pts),
+    ])
+    p0_probes_y = basis_p0.probes(query_pts_y)
+
+    return {
+        "D": D,
+        "w": w,
+        "basis_p0": basis_p0,
+        "mx": mx,
+        "my": my,
+        "mxy": mxy,
+        "mx_dim_lower": mx_dim_lower,
+        "my_dim_lower": my_dim_lower,
+        "mx_dim_upper": mx_dim_upper,
+        "my_dim_upper": my_dim_upper,
+        "query_pts_x": query_pts_x,
+        "p0_probes_x": p0_probes_x,
+        "query_pts_y": query_pts_y,
+        "p0_probes_y": p0_probes_y,
+    }
 
 
-def visualize_probe_x(query_pts_x, p0_probes_x,mx_dim_lower, mx_dim_upper, line_par_x):
+def visualize_probe_x(query_pts_x, p0_probes_x, mx, mx_dim_lower, mx_dim_upper, line_par_x):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
@@ -448,7 +396,7 @@ def visualize_probe_x(query_pts_x, p0_probes_x,mx_dim_lower, mx_dim_upper, line_
     return fig
 
 
-def visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_par_y):
+def visualize_probe_y(query_pts_y, p0_probes_y, my, my_dim_lower, my_dim_upper, line_par_y):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
@@ -483,7 +431,7 @@ def visualize_w(m,basis,w):
     return fig
 
 
-def visualize_moments(mx, my, mxy):
+def visualize_moments(m, basis_p0, mx, my, mxy):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
@@ -518,7 +466,7 @@ def visualize_moments(mx, my, mxy):
     return fig
 
 
-def visualize_dim_moments_x(mx_dim_lower, mx_dim_upper):
+def visualize_dim_moments_x(m, basis_p0, mx_dim_lower, mx_dim_upper):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
@@ -545,7 +493,7 @@ def visualize_dim_moments_x(mx_dim_lower, mx_dim_upper):
     return fig
 
 
-def visualize_dim_moments_y(my_dim_lower, my_dim_upper):
+def visualize_dim_moments_y(m, basis_p0, my_dim_lower, my_dim_upper):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
@@ -573,7 +521,7 @@ def visualize_dim_moments_y(my_dim_lower, my_dim_upper):
     return fig
 
 
-def visualize_mesh(m, D, basis):
+def visualize_mesh(m, D, basis, line_par_x, line_par_y):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
@@ -676,7 +624,7 @@ def _field_extrema_with_location(field_values, dof_locations):
     }
 
 
-def _build_field_extrema_data():
+def _build_field_extrema_data(basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
     return {
         "mx": _field_extrema_with_location(mx, basis_p0.doflocs),
         "my": _field_extrema_with_location(my, basis_p0.doflocs),
@@ -688,7 +636,7 @@ def _build_field_extrema_data():
     }
 
 
-def _build_saved_input_data(input_path):
+def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
     project_name = os.path.basename(os.path.dirname(os.path.abspath(input_path)))
     return {
         "project_name": project_name,
@@ -701,22 +649,49 @@ def _build_saved_input_data(input_path):
         "edges_text": _build_edges_text(polygon.tolist(), ulozeni.astype(int).tolist()),
         "line_par_x": line_par_x.tolist(),
         "line_par_y": line_par_y.tolist(),
-        "field_extrema": _build_field_extrema_data(),
+        "field_extrema": _build_field_extrema_data(
+            basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+        ),
     }
 
 
 def main():
+    m, basis, K, f = compute_plate_response()
+
+    # Zobrazit síť co nejdříve před dalším výpočtem.
+    fig_mesh = visualize_mesh(m, np.array([], dtype=int), basis, line_par_x, line_par_y)
+    plt.show(block=False)
+    plt.pause(0.1)
+
+    # Včasné ověření, že linie grafů leží uvnitř oblasti.
+    validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
+    validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
+
+    preview = solve_plate_system(m, basis, K, f)
+    plt.close(fig_mesh)
+    fig_mesh = visualize_mesh(m, preview["D"], basis, line_par_x, line_par_y)
+
     figures = [
-        visualize_mesh(m, D, basis),
-        visualize_w(m,basis,w),
-        visualize_moments(mx,my,mxy),
-        visualize_dim_moments_x(mx_dim_lower, mx_dim_upper),
-        visualize_dim_moments_y(my_dim_lower, my_dim_upper),
-        visualize_probe_x(query_pts_x, p0_probes_x,mx_dim_lower, mx_dim_upper, line_par_x),
-        visualize_probe_y(query_pts_y, p0_probes_y,my_dim_lower, my_dim_upper, line_par_y),
+        fig_mesh,
+        visualize_w(m, basis, preview["w"]),
+        visualize_moments(m, preview["basis_p0"], preview["mx"], preview["my"], preview["mxy"]),
+        visualize_dim_moments_x(m, preview["basis_p0"], preview["mx_dim_lower"], preview["mx_dim_upper"]),
+        visualize_dim_moments_y(m, preview["basis_p0"], preview["my_dim_lower"], preview["my_dim_upper"]),
+        visualize_probe_x(preview["query_pts_x"], preview["p0_probes_x"], preview["mx"], preview["mx_dim_lower"], preview["mx_dim_upper"], line_par_x),
+        visualize_probe_y(preview["query_pts_y"], preview["p0_probes_y"], preview["my"], preview["my_dim_lower"], preview["my_dim_upper"], line_par_y),
     ]
 
-    input_data = _build_saved_input_data(input_file)
+    input_data = _build_saved_input_data(
+        input_file,
+        preview["basis_p0"],
+        preview["mx"],
+        preview["my"],
+        preview["mxy"],
+        preview["mx_dim_lower"],
+        preview["my_dim_lower"],
+        preview["mx_dim_upper"],
+        preview["my_dim_upper"],
+    )
 
     save_input_assignment(input_file, input_data)
     save_plot_images(plots_dir, figures)
@@ -729,6 +704,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
-
+    try:
+        main()
+    except ValueError as exc:
+        print(f"Chyba vstupu nebo nestability výpočtu: {exc}")
+        sys.exit(1)
