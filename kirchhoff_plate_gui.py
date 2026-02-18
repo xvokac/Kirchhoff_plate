@@ -430,7 +430,10 @@ class KirchhoffWindow(QMainWindow):
 
 def run_solver_entrypoint():
     import kirchhoff_plate
-    kirchhoff_plate.main()
+    if os.getenv("KIRCHHOFF_PREVIEW_MESH") == "1":
+        kirchhoff_plate.preview_mesh_main()
+    else:
+        kirchhoff_plate.main()
 
     
 
