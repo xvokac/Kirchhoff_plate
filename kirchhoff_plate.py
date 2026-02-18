@@ -593,6 +593,24 @@ def visualize_mesh(m, D, basis):
     x_coords = basis.doflocs[0][valid_indices]  # Souřadnice x pro indexy v D a současně v basis.dofs.facet_dofs
     y_coords = basis.doflocs[1][valid_indices]  # Souřadnice y pro indexy v D a současně v basis.dofs.facet_dofs
     ax.scatter(x_coords, y_coords, color='red', label=r'$\phi_n=0$') #"r" je důležité, aby zpětné lomítko nebylo interpretováno jako escape sekvence
+
+    # 3) Vyznačení linií pro liniové grafy momentů
+    ax.plot(
+        [line_par_x[0], line_par_x[1]],
+        [line_par_x[2], line_par_x[2]],
+        color='green',
+        linewidth=1.8,
+        label='Linie grafu $M_x$',
+    )
+    ax.plot(
+        [line_par_y[2], line_par_y[2]],
+        [line_par_y[0], line_par_y[1]],
+        color='green',
+        linewidth=1.8,
+        linestyle='--',
+        label='Linie grafu $M_y$',
+    )
+
     # Display the plot
     ax.set_xlabel('X [m]')
     ax.set_ylabel('Y [m]')
