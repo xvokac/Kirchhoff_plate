@@ -71,7 +71,7 @@ straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro v
 
 Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení grafů.
 
-Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech.
+Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech. Nový výpočet je ale možné spustit až po uzavření všech grafických oken.
 
 Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$.
 
