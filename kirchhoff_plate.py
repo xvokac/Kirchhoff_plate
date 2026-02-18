@@ -685,17 +685,11 @@ def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_
 def main():
     m, basis, K, f = compute_plate_response()
 
-    # Zobrazit síť co nejdříve před dalším výpočtem.
-    fig_mesh = visualize_mesh(m, np.array([], dtype=int), basis, line_par_x, line_par_y)
-    plt.show(block=False)
-    plt.pause(10)
-
     # Včasné ověření, že linie grafů leží uvnitř oblasti.
     validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
     validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
 
     preview = solve_plate_system(m, basis, K, f)
-    plt.close(fig_mesh)
     fig_mesh = visualize_mesh(m, preview["D"], basis, line_par_x, line_par_y)
 
     figures = [
@@ -730,9 +724,20 @@ def main():
     plt.show() #zobrazí všechny grafy najednou
 
 
+def preview_mesh_main():
+    m, basis, _, _ = compute_plate_response()
+    validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
+    validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
+    visualize_mesh(m, np.array([], dtype=int), basis, line_par_x, line_par_y)
+    plt.show()
+
+
 if __name__ == "__main__":
     try:
-        main()
+        if os.getenv("KIRCHHOFF_PREVIEW_MESH") == "1":
+            preview_mesh_main()
+        else:
+            main()
     except ValueError as exc:
         print(f"Chyba vstupu nebo nestability výpočtu: {exc}")
         sys.exit(1)
