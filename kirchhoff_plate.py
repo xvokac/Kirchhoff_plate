@@ -530,6 +530,31 @@ def visualize_mesh(m, D, basis, line_par_x, line_par_y):
     # Draw the mesh
     draw(m, ax=ax)
 
+    # 0) Vyznačení okrajových podmínek po jednotlivých hranách polygonu
+    edge_styles = {
+        (0, 0): {"color": "#6c757d", "linestyle": "-", "label": "Volný okraj [0,0]"},
+        (1, 0): {"color": "#1f77b4", "linestyle": "-", "label": "Kloub [1,0]"},
+        (0, 1): {"color": "#2ca02c", "linestyle": "-", "label": "Osa symetrie [0,1]"},
+        (1, 1): {"color": "#d62728", "linestyle": "-", "label": "Vetknutí [1,1]"},
+    }
+    for i in range(polygon.shape[0]):
+        point_a = polygon[i]
+        point_b = polygon[(i + 1) % polygon.shape[0]]
+        boundary_key = tuple(int(value) for value in ulozeni[i])
+        style = edge_styles.get(
+            boundary_key,
+            {"color": "black", "linestyle": "--", "label": f"Neznámá podmínka {list(boundary_key)}"},
+        )
+        ax.plot(
+            [point_a[0], point_b[0]],
+            [point_a[1], point_b[1]],
+            color=style["color"],
+            linestyle=style["linestyle"],
+            linewidth=2.4,
+            label=style["label"],
+            zorder=3,
+        )
+
     # Vyznačit body se DOF, které se staticky kondenzují:
     # 1) předepsaní u=0 pro kondenzaci
     valid_indices = np.intersect1d(D, basis.dofs.nodal_dofs)
@@ -563,7 +588,9 @@ def visualize_mesh(m, D, basis, line_par_x, line_par_y):
     ax.set_xlabel('X [m]')
     ax.set_ylabel('Y [m]')
     ax.set_aspect('equal', adjustable='box') #stejné měřítko os
-    plt.legend() #zobraz legentu
+    handles, labels = ax.get_legend_handles_labels()
+    unique_entries = dict(zip(labels, handles))
+    ax.legend(unique_entries.values(), unique_entries.keys())
     return fig
 
 
