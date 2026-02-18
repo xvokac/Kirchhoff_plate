@@ -183,7 +183,7 @@ class KirchhoffWindow(QMainWindow):
 
     def run_solver(self):
         if self._solver_process is not None and self._solver_process.poll() is None:
-            self.status.setText("Výpočet už běží. Počkejte na dokončení aktuálního běhu.")
+            self.status.setText("Výpočet už běží. Počkejte na dokončení aktuálního běhu nebo zavřete všechna jeho grafická okna.")
             return
 
         parsed = self._parse_edges_text()
@@ -215,7 +215,7 @@ class KirchhoffWindow(QMainWindow):
 
         self._solver_process = process
         self.status.setText(
-            "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní. Další výpočet možný po uzavření všech grafických oken."
+            "Výpočet byl spuštěn na pozadí. Grafická okna se otevřou samostatně a GUI zůstává aktivní."
         )
 
     def _launch_solver_process(self, env):
