@@ -1,6 +1,8 @@
 """Jednoduché GUI pro zadání vstupů výpočtu Kirchhoffovy desky."""
 
+import datetime
 import json
+import traceback
 import os
 import subprocess
 import sys
@@ -39,6 +41,44 @@ DEFAULT_ULOZENI = [
 
 DEFAULT_LINE_PAR_X = [0.0, 3.6, 1.0]
 DEFAULT_LINE_PAR_Y = [0.0, 3.0, 1.0]
+LOG_FILE_NAME = "kirchhoff_gui.log"
+
+
+def _setup_runtime_logging():
+    """Přesměruje stdout/stderr do log souboru (užitečné pro PyInstaller --windowed)."""
+    if getattr(_setup_runtime_logging, "_initialized", False):
+        return
+
+    log_path = Path.cwd() / LOG_FILE_NAME
+    log_file = open(log_path, "a", encoding="utf-8", buffering=1)
+
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+
+    sys.stdout = log_file
+    sys.stderr = log_file
+
+    timestamp = datetime.datetime.now().isoformat(timespec="seconds")
+    print(f"\n=== Start aplikace: {timestamp} ===")
+    print(f"Python executable: {sys.executable}")
+    print(f"CWD: {Path.cwd()}")
+    print(f"argv: {sys.argv}")
+
+    def _log_uncaught_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            if original_stderr is not None:
+                original_stderr.write("KeyboardInterrupt\n")
+            return
+
+        print("Nezachycená výjimka:")
+        traceback.print_exception(exc_type, exc_value, exc_traceback, file=log_file)
+        log_file.flush()
+
+        if original_stderr is not None:
+            traceback.print_exception(exc_type, exc_value, exc_traceback, file=original_stderr)
+
+    sys.excepthook = _log_uncaught_exception
+    _setup_runtime_logging._initialized = True
 
 
 def _build_default_edges_text():
@@ -360,6 +400,8 @@ def run_solver_entrypoint():
     
 
 def main():
+    _setup_runtime_logging()
+
     if "--run-solver" in sys.argv:
         run_solver_entrypoint()
         return
