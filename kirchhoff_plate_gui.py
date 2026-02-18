@@ -234,7 +234,12 @@ class KirchhoffWindow(QMainWindow):
 
 
 def run_solver_entrypoint():
-    import kirchhoff_plate  # noqa: F401
+    import runpy
+
+    # Spuštění přes runpy zajistí, že se v kirchhoff_plate.py vykoná
+    # i blok `if __name__ == "__main__":`, který ukládá report, obrázky
+    # a otevírá matplotlib okna.
+    runpy.run_module("kirchhoff_plate", run_name="__main__")
 
 
 def main():
