@@ -95,7 +95,7 @@ Na průběh momentů má vliv zadaný poissonův součinitel.
 Tvar průhybu (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není. 
 Proto desková tuhost vypočtená z tloušťky desky a modulu pružnosti jako u lineárního pružného materiálu není reálná.
 
-Výsledky se zapíší do aktuálního adresáře do souboru `kirchhoff_report.pdf` a grafy se uloží ve formátu PNG do adresáře `kirchhoff_plots`.
+Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` a grafy se uloží ve formátu PNG do adresáře `kirchhoff_plots`. Do adresáře projektu se také zapíše soubor `kirchhoff_input.json` se zadáním výpočtu, které lze programem znovu načíst při dalším spuštění.
 
 ![input data](kirchhoff_plots/plot_01.png)
 
