@@ -361,7 +361,7 @@ class KirchhoffWindow(QMainWindow):
         env["KIRCHHOFF_ULOZENI"] = json.dumps(ulozeni)
         env["KIRCHHOFF_LINE_PAR_X"] = json.dumps(line_par_x)
         env["KIRCHHOFF_LINE_PAR_Y"] = json.dumps(line_par_y)
-        env["KIRCHHOFF_INPUT_FILE"] = str(output_dir / "temp.json")
+        env["KIRCHHOFF_INPUT_FILE"] = str(output_dir / "kirchhoff_input.json")
         env["KIRCHHOFF_PLOTS_DIR"] = str(output_dir / "kirchhoff_plots")
         env["KIRCHHOFF_REPORT_FILE"] = str(output_dir / "kirchhoff_report.pdf")
 
@@ -415,3 +415,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
