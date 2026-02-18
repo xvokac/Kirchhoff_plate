@@ -59,7 +59,7 @@ python -O -m PyInstaller ^
   --upx-dir C:\upx  
 ```
 
-Při použití přepínače `--windowed` se neotevře konzolové černé okno, kde by mohly být zobrazována chybová hlášení. 
+Při použití přepínače `--windowed` se neotevře konzolové černé okno, kde by mohla být zobrazována chybová hlášení. 
 A to v případě nekorektního zadání. Tyto výstupy se proto loují do souboru `kirchhoff_gui.log`.
 
 ## Hlavní okno
