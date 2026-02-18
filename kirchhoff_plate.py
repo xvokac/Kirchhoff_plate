@@ -27,6 +27,7 @@ import math
 import os
 import json
 from datetime import datetime
+from pathlib import Path
 
 
 def _env_float(name, default):
@@ -595,6 +596,7 @@ def visualize_mesh(m, D, basis, line_par_x, line_par_y):
 
 
 def save_input_assignment(input_path, input_data):
+    Path(input_path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
     with open(input_path, 'w', encoding='utf-8') as file:
         json.dump(input_data, file, ensure_ascii=False, indent=2)
 
@@ -602,6 +604,8 @@ def save_input_assignment(input_path, input_data):
 def save_report_pdf(pdf_path, input_data, figures):
     from matplotlib.backends.backend_pdf import PdfPages
     import matplotlib.pyplot as plt
+
+    Path(pdf_path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
 
     with PdfPages(pdf_path) as pdf:
         fig_text, ax_text = plt.subplots(figsize=(8.27, 11.69))
