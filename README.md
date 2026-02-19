@@ -50,14 +50,16 @@ python -m PyInstaller --onefile --windowed kirchhoff_plate_gui.py
 
 Po dokončení bude spustitelný soubor ve složce `dist/` (např. `dist/kirchhoff_plate_gui.exe`). 
 Je třeba ale potom počítat s jeho větší velikostí, protože obsahuje všechny knihovny, i ty co nutně nepotřebuje. 
-Proto může být vhodnější spouštět skript v programu Python, jak je popsáno výše. Případně je možné optimalizovat a volit jinou metodu, 
-např. rozbalit UPX  z `https://upx.github.io/` do  `C:\upx` a použít:
+Proto může být vhodnější pro běžného uživatele Python spouštět skript přímo v programu Python, jak je popsáno výše. 
+Případně je možné volit jinou metodu, např. rozbalit UPX pro optimalizaci z `https://upx.github.io/` do  `C:\upx` a použít:
 
 ```bash 
 python -O -m PyInstaller ^
   --onedir --windowed kirchhoff_plate_gui.py ^
   --upx-dir C:\upx  
 ```
+
+V tomto případě přepínač `--onedir` způsobí vytvoření adresáře, kde bude `.exe` soubor a potřebné knihovny k běhu programu budou v podadresáři `_internal`.
 
 Při použití přepínače `--windowed` se neotevře konzolové černé okno, kde by mohly být zobrazovány průběžné informace o běhu programu a chybová hlášení. 
 Tyto výstupy se proto logují do souboru `kirchhoff_gui.log`.
