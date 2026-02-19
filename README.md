@@ -64,6 +64,8 @@ V tomto případě přepínač `--onedir` způsobí vytvoření adresáře, kde 
 Při použití přepínače `--windowed` se neotevře konzolové černé okno, kde by mohly být zobrazovány průběžné informace o běhu programu a chybová hlášení. 
 Tyto výstupy se proto logují do souboru `kirchhoff_gui.log`.
 
+---
+
 ## Hlavní okno
 
 Vstupní data se zadávají pomocí hlavního okna aplikace.
