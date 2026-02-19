@@ -90,7 +90,7 @@ Pomocí tlačítek **Uložit zadání (JSON)** a **Načíst zadání (JSON)** lz
 
 Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech. Nový výpočet je ale možné spustit až po uzavření všech grafických oken předchozího výpočtu.
 
-Dimenzační momenty jsou počítány nejjednodušší metodou, tj. $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os X a Y.
+Dimenzační momenty jsou počítány metodou $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os X a Y.
 
 Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti. 
 Na průběh momentů má vliv zadaný poissonův součinitel.
