@@ -77,6 +77,22 @@ def _setup_runtime_logging():
         if original_stderr is not None:
             traceback.print_exception(exc_type, exc_value, exc_traceback, file=original_stderr)
 
+        app = QApplication.instance()
+        if app is not None:
+            QMessageBox.critical(
+                None,
+                "Nezachycená chyba",
+                f"Nastala neočekávaná chyba:\n{exc_value}\n\n"
+                f"Podrobnosti jsou uloženy v logu:\n{log_path}",
+            )
+            app.processEvents()
+        else:
+            if original_stderr is not None:
+                original_stderr.write(
+                    f"Nastala neočekávaná chyba: {exc_value}\n"
+                    f"Podrobnosti jsou uložené v logu: {log_path}\n"
+                )
+
     sys.excepthook = _log_uncaught_exception
     _setup_runtime_logging._initialized = True
 
