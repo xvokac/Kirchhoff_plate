@@ -88,9 +88,9 @@ straně polygonu a určují okrajové podmínky. Např. kombinace [0,0] je pro v
 
 Tlačítko **Generovat síť** vygeneruje a zobrazí síť prvků a označí i okrajové podmínky. Slouží pro kontrolu zadané geometrie a sítě prvků. 
 
-Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení výstupních grafů a uložení výsledků do adresáře projektu.
+Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení výstupních grafů a uložení výsledků do adresáře projektu. V závislti na velikosti úlohy může proces trvat delší dobu.
 
-Pomocí tlačítek **Uložit zadání (JSON)** a **Načíst zadání (JSON)** lze aktuální vstupní data uložit do souboru a při dalším spuštění programu je znovu načíst.
+Pomocí tlačítek **Uložit zadání (JSON)** a **Načíst zadání (JSON)** lze aktuální vstupní data uložit do souboru ve formátu `JSON` a při dalším spuštění programu je znovu načíst.
 
 Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech. Nový výpočet je ale možné spustit až po uzavření všech grafických oken předchozího výpočtu.
 
