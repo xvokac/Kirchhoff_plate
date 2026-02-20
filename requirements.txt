@@ -2,4 +2,5 @@ gmsh
 matplotlib
 PyQt5
 scikit-fem
+meshio
 numpy
