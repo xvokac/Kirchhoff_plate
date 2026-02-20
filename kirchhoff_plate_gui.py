@@ -143,12 +143,11 @@ class KirchhoffWindow(QMainWindow):
         form.addRow("Modul pružnosti E [kPa]", self.e_input)
         form.addRow("Poissonův poměr nu [-]", self.nu_input)
         form.addRow("Délka strany prvku lc [m]", self.lc_input)
-        form.addRow(QLabel("Paramtery pro odhad výztuže"))
+        form.addRow(QLabel("Paramtery pro odhad výztuže:"))
         form.addRow("Průměr výztuže dia_s [m]", self.dia_s_input)
         form.addRow("Předpokládané krytí výztuže as [m]", self.as_input)
-        form.addRow("Návrhová hodnota f_yd [kPa]", self.fys_input)
+        form.addRow("Návrhová hodnota pevnosti oceli f_yd [kPa]", self.fys_input)
         
-
         self.edges_input = QTextEdit()
         self.edges_input.setPlaceholderText("x,y,w,phi_n")
         self.edges_input.setPlainText(_build_default_edges_text())
@@ -501,4 +500,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
