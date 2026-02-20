@@ -107,6 +107,9 @@ Tyto deformace jsou ale pro linární materiál, a proto pro ŽB velmi podhodnoc
 d = _env_float("KIRCHHOFF_D", 0.2)  # tloušťka desky v m
 E = _env_float("KIRCHHOFF_E", 35e6)  # modul pružnosti v kPa
 nu = _env_float("KIRCHHOFF_NU", 0.25)  # poissonův poměr
+dia_s = _env_float("KIRCHHOFF_DIA_S", 0.01)  # průměr výztuže [m]
+as_cover = _env_float("KIRCHHOFF_AS", 0.015)  # krytí výztuže [m]
+fys = _env_float("KIRCHHOFF_FYS", 434800.0)  # návrhová hodnota oceli [kPa]
 
 # Grafy podél linie
 # 1) linie rovnoběžná s osou x
@@ -341,6 +344,17 @@ def solve_plate_system(m, basis, K, f):
     M_y_dim_lower = M_y + np.abs(M_xy)
     M_y_dim_upper = M_y - np.abs(M_xy)
 
+    d_zb = d - as_cover - dia_s / 2.0
+    if d_zb <= 0:
+        raise ValueError("Neplatné zadání výztuže: účinná výška d_zb musí být kladná.")
+
+    area_rebar = math.pi * dia_s ** 2 / 4.0
+    rebar_factor = area_rebar * fys * 0.9 * d_zb
+    N_x_dim_lower = M_x_dim_lower / rebar_factor
+    N_x_dim_upper = M_x_dim_upper / rebar_factor
+    N_y_dim_lower = M_y_dim_lower / rebar_factor
+    N_y_dim_upper = M_y_dim_upper / rebar_factor
+
     basis_p0 = basis.with_element(ElementTriP0())
     mx = basis_p0.project(M_x)
     my = basis_p0.project(M_y)
@@ -349,6 +363,10 @@ def solve_plate_system(m, basis, K, f):
     my_dim_lower = basis_p0.project(M_y_dim_lower)
     mx_dim_upper = basis_p0.project(M_x_dim_upper)
     my_dim_upper = basis_p0.project(M_y_dim_upper)
+    nx_dim_lower = basis_p0.project(N_x_dim_lower)
+    ny_dim_lower = basis_p0.project(N_y_dim_lower)
+    nx_dim_upper = basis_p0.project(N_x_dim_upper)
+    ny_dim_upper = basis_p0.project(N_y_dim_upper)
 
     query_pts_x = np.vstack([
         np.linspace(line_par_x[0], line_par_x[1], N_query_pts),
@@ -373,6 +391,10 @@ def solve_plate_system(m, basis, K, f):
         "my_dim_lower": my_dim_lower,
         "mx_dim_upper": mx_dim_upper,
         "my_dim_upper": my_dim_upper,
+        "nx_dim_lower": nx_dim_lower,
+        "ny_dim_lower": ny_dim_lower,
+        "nx_dim_upper": nx_dim_upper,
+        "ny_dim_upper": ny_dim_upper,
         "query_pts_x": query_pts_x,
         "p0_probes_x": p0_probes_x,
         "query_pts_y": query_pts_y,
@@ -411,6 +433,32 @@ def visualize_probe_y(query_pts_y, p0_probes_y, my, my_dim_lower, my_dim_upper, 
     ax.invert_yaxis()  #záporný moment nahoru
     ax.grid(True)
     plt.legend() #zobraz legentu
+    return fig
+
+
+def visualize_probe_nx(query_pts_x, p0_probes_x, nx_dim_lower, nx_dim_upper, line_par_x):
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.plot(query_pts_x[0], p0_probes_x @ nx_dim_lower, color='blue', label='lower')
+    ax.plot(query_pts_x[0], p0_probes_x @ nx_dim_upper, color='red', label='upper')
+    ax.set_title(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    ax.set_xlabel(f'x [m], y={line_par_x[2]:.2f}')
+    ax.grid(True)
+    plt.legend()
+    return fig
+
+
+def visualize_probe_ny(query_pts_y, p0_probes_y, ny_dim_lower, ny_dim_upper, line_par_y):
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.plot(query_pts_y[1], p0_probes_y @ ny_dim_lower, color='blue', label='lower')
+    ax.plot(query_pts_y[1], p0_probes_y @ ny_dim_upper, color='red', label='upper')
+    ax.set_title(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    ax.set_xlabel(f'y [m], x={line_par_y[2]:.2f}')
+    ax.grid(True)
+    plt.legend()
     return fig
 
 
@@ -519,6 +567,56 @@ def visualize_dim_moments_y(m, basis_p0, my_dim_lower, my_dim_upper):
 
 
     plt.tight_layout()  # Pro lepší rozložení grafů
+    return fig
+
+
+def visualize_rebar_count_x(m, basis_p0, nx_dim_lower, nx_dim_upper):
+    from skfem.visuals.matplotlib import draw, plot
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    ax1 = draw(m, ax=axes[0])
+    plot(basis_p0, nx_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
+    ax1.set_title('N$_{x,dim,lower}$ [-]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
+    ax1.set_aspect('equal')
+
+    ax2 = draw(m, ax=axes[1])
+    plot(basis_p0, nx_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
+    ax2.set_title('N$_{x,dim,upper}$ [-]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
+    ax2.set_aspect('equal')
+
+    fig.suptitle(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    plt.tight_layout()
+    return fig
+
+
+def visualize_rebar_count_y(m, basis_p0, ny_dim_lower, ny_dim_upper):
+    from skfem.visuals.matplotlib import draw, plot
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    ax1 = draw(m, ax=axes[0])
+    plot(basis_p0, ny_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
+    ax1.set_title('N$_{y,dim,lower}$ [-]')
+    ax1.set_xlabel('X [m]')
+    ax1.set_ylabel('Y [m]')
+    ax1.set_aspect('equal')
+
+    ax2 = draw(m, ax=axes[1])
+    plot(basis_p0, ny_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
+    ax2.set_title('N$_{y,dim,upper}$ [-]')
+    ax2.set_xlabel('X [m]')
+    ax2.set_ylabel('Y [m]')
+    ax2.set_aspect('equal')
+
+    fig.suptitle(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    plt.tight_layout()
     return fig
 
 
@@ -655,7 +753,20 @@ def _field_extrema_with_location(field_values, dof_locations):
     }
 
 
-def _build_field_extrema_data(basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
+def _build_field_extrema_data(
+    basis_p0,
+    mx,
+    my,
+    mxy,
+    mx_dim_lower,
+    my_dim_lower,
+    mx_dim_upper,
+    my_dim_upper,
+    nx_dim_lower,
+    ny_dim_lower,
+    nx_dim_upper,
+    ny_dim_upper,
+):
     return {
         "mx": _field_extrema_with_location(mx, basis_p0.doflocs),
         "my": _field_extrema_with_location(my, basis_p0.doflocs),
@@ -664,10 +775,28 @@ def _build_field_extrema_data(basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower,
         "my_dim_lower": _field_extrema_with_location(my_dim_lower, basis_p0.doflocs),
         "mx_dim_upper": _field_extrema_with_location(mx_dim_upper, basis_p0.doflocs),
         "my_dim_upper": _field_extrema_with_location(my_dim_upper, basis_p0.doflocs),
+        "nx_dim_lower": _field_extrema_with_location(nx_dim_lower, basis_p0.doflocs),
+        "ny_dim_lower": _field_extrema_with_location(ny_dim_lower, basis_p0.doflocs),
+        "nx_dim_upper": _field_extrema_with_location(nx_dim_upper, basis_p0.doflocs),
+        "ny_dim_upper": _field_extrema_with_location(ny_dim_upper, basis_p0.doflocs),
     }
 
 
-def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
+def _build_saved_input_data(
+    input_path,
+    basis_p0,
+    mx,
+    my,
+    mxy,
+    mx_dim_lower,
+    my_dim_lower,
+    mx_dim_upper,
+    my_dim_upper,
+    nx_dim_lower,
+    ny_dim_lower,
+    nx_dim_upper,
+    ny_dim_upper,
+):
     project_name = os.path.basename(os.path.dirname(os.path.abspath(input_path)))
     return {
         "project_name": project_name,
@@ -676,12 +805,26 @@ def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_
         "d": d,
         "E": E,
         "nu": nu,
+        "dia_s": dia_s,
+        "as": as_cover,
+        "fys": fys,
         "n_query_pts": N_query_pts,
         "edges_text": _build_edges_text(polygon.tolist(), ulozeni.astype(int).tolist()),
         "line_par_x": line_par_x.tolist(),
         "line_par_y": line_par_y.tolist(),
         "field_extrema": _build_field_extrema_data(
-            basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+            basis_p0,
+            mx,
+            my,
+            mxy,
+            mx_dim_lower,
+            my_dim_lower,
+            mx_dim_upper,
+            my_dim_upper,
+            nx_dim_lower,
+            ny_dim_lower,
+            nx_dim_upper,
+            ny_dim_upper,
         ),
     }
 
@@ -702,8 +845,12 @@ def main():
         visualize_moments(m, preview["basis_p0"], preview["mx"], preview["my"], preview["mxy"]),
         visualize_dim_moments_x(m, preview["basis_p0"], preview["mx_dim_lower"], preview["mx_dim_upper"]),
         visualize_dim_moments_y(m, preview["basis_p0"], preview["my_dim_lower"], preview["my_dim_upper"]),
+        visualize_rebar_count_x(m, preview["basis_p0"], preview["nx_dim_lower"], preview["nx_dim_upper"]),
+        visualize_rebar_count_y(m, preview["basis_p0"], preview["ny_dim_lower"], preview["ny_dim_upper"]),
         visualize_probe_x(preview["query_pts_x"], preview["p0_probes_x"], preview["mx"], preview["mx_dim_lower"], preview["mx_dim_upper"], line_par_x),
         visualize_probe_y(preview["query_pts_y"], preview["p0_probes_y"], preview["my"], preview["my_dim_lower"], preview["my_dim_upper"], line_par_y),
+        visualize_probe_nx(preview["query_pts_x"], preview["p0_probes_x"], preview["nx_dim_lower"], preview["nx_dim_upper"], line_par_x),
+        visualize_probe_ny(preview["query_pts_y"], preview["p0_probes_y"], preview["ny_dim_lower"], preview["ny_dim_upper"], line_par_y),
     ]
 
     input_data = _build_saved_input_data(
@@ -716,6 +863,10 @@ def main():
         preview["my_dim_lower"],
         preview["mx_dim_upper"],
         preview["my_dim_upper"],
+        preview["nx_dim_lower"],
+        preview["ny_dim_lower"],
+        preview["nx_dim_upper"],
+        preview["ny_dim_upper"],
     )
 
     save_input_assignment(input_file, input_data)
