@@ -360,6 +360,22 @@ class KirchhoffWindow(QMainWindow):
             return
 
         output_dir = Path.cwd() / project_name
+        if output_dir.exists() and output_dir.is_dir() and any(output_dir.iterdir()):
+            reply = QMessageBox.warning(
+                self,
+                "Projektová složka není prázdná",
+                (
+                    "Vybraný adresář projektu už obsahuje soubory.\n"
+                    "Pokračováním může dojít k přepsání již uloženého obsahu.\n\n"
+                    "Chcete pokračovat?"
+                ),
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            if reply != QMessageBox.Yes:
+                self.status.setText("Výpočet byl zrušen uživatelem.")
+                return
+
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
         except OSError as error:
