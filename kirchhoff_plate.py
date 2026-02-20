@@ -351,9 +351,14 @@ def solve_plate_system(m, basis, K, f):
     area_rebar = math.pi * dia_s ** 2 / 4.0
     rebar_factor = area_rebar * fys * 0.9 * d_zb
     N_x_dim_lower = M_x_dim_lower / rebar_factor
-    N_x_dim_upper = M_x_dim_upper / rebar_factor
+    N_x_dim_upper = -M_x_dim_upper / rebar_factor
     N_y_dim_lower = M_y_dim_lower / rebar_factor
-    N_y_dim_upper = M_y_dim_upper / rebar_factor
+    N_y_dim_upper = -M_y_dim_upper / rebar_factor
+
+    N_x_dim_lower = np.maximum(N_x_dim_lower, 0.0)
+    N_x_dim_upper = np.maximum(N_x_dim_upper, 0.0)
+    N_y_dim_lower = np.maximum(N_y_dim_lower, 0.0)
+    N_y_dim_upper = np.maximum(N_y_dim_upper, 0.0)
 
     basis_p0 = basis.with_element(ElementTriP0())
     mx = basis_p0.project(M_x)
@@ -576,15 +581,18 @@ def visualize_rebar_count_x(m, basis_p0, nx_dim_lower, nx_dim_upper):
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
+    nx_dim_lower_plot = np.clip(nx_dim_lower, 0.0, 10.0)
+    nx_dim_upper_plot = np.clip(nx_dim_upper, 0.0, 10.0)
+
     ax1 = draw(m, ax=axes[0])
-    plot(basis_p0, nx_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
+    plot(basis_p0, nx_dim_lower_plot, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('N$_{x,dim,lower}$ [-]')
     ax1.set_xlabel('X [m]')
     ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')
 
     ax2 = draw(m, ax=axes[1])
-    plot(basis_p0, nx_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
+    plot(basis_p0, nx_dim_upper_plot, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('N$_{x,dim,upper}$ [-]')
     ax2.set_xlabel('X [m]')
     ax2.set_ylabel('Y [m]')
@@ -601,15 +609,18 @@ def visualize_rebar_count_y(m, basis_p0, ny_dim_lower, ny_dim_upper):
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
+    ny_dim_lower_plot = np.clip(ny_dim_lower, 0.0, 10.0)
+    ny_dim_upper_plot = np.clip(ny_dim_upper, 0.0, 10.0)
+
     ax1 = draw(m, ax=axes[0])
-    plot(basis_p0, ny_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
+    plot(basis_p0, ny_dim_lower_plot, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('N$_{y,dim,lower}$ [-]')
     ax1.set_xlabel('X [m]')
     ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')
 
     ax2 = draw(m, ax=axes[1])
-    plot(basis_p0, ny_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
+    plot(basis_p0, ny_dim_upper_plot, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('N$_{y,dim,upper}$ [-]')
     ax2.set_xlabel('X [m]')
     ax2.set_ylabel('Y [m]')
