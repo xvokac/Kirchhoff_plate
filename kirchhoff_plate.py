@@ -447,7 +447,7 @@ def visualize_probe_nx(query_pts_x, p0_probes_x, nx_dim_lower, nx_dim_upper, lin
     fig, ax = plt.subplots()
     ax.plot(query_pts_x[0], p0_probes_x @ nx_dim_lower, color='blue', label='lower')
     ax.plot(query_pts_x[0], p0_probes_x @ nx_dim_upper, color='red', label='upper')
-    ax.set_title(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    ax.set_title(f'Odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
     ax.set_xlabel(f'x [m], y={line_par_x[2]:.2f}')
     ax.grid(True)
     plt.legend()
@@ -460,7 +460,7 @@ def visualize_probe_ny(query_pts_y, p0_probes_y, ny_dim_lower, ny_dim_upper, lin
     fig, ax = plt.subplots()
     ax.plot(query_pts_y[1], p0_probes_y @ ny_dim_lower, color='blue', label='lower')
     ax.plot(query_pts_y[1], p0_probes_y @ ny_dim_upper, color='red', label='upper')
-    ax.set_title(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    ax.set_title(f'Odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
     ax.set_xlabel(f'y [m], x={line_par_y[2]:.2f}')
     ax.grid(True)
     plt.legend()
@@ -581,24 +581,21 @@ def visualize_rebar_count_x(m, basis_p0, nx_dim_lower, nx_dim_upper):
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
-    nx_dim_lower_plot = np.clip(nx_dim_lower, 0.0, 10.0)
-    nx_dim_upper_plot = np.clip(nx_dim_upper, 0.0, 10.0)
-
     ax1 = draw(m, ax=axes[0])
-    plot(basis_p0, nx_dim_lower_plot, ax=ax1, shading='gouraud', colorbar=True)
+    plot(basis_p0, nx_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('N$_{x,dim,lower}$ [-]')
     ax1.set_xlabel('X [m]')
     ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')
 
     ax2 = draw(m, ax=axes[1])
-    plot(basis_p0, nx_dim_upper_plot, ax=ax2, shading='gouraud', colorbar=True)
+    plot(basis_p0, nx_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('N$_{x,dim,upper}$ [-]')
     ax2.set_xlabel('X [m]')
     ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')
 
-    fig.suptitle(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    fig.suptitle(f'Odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
     plt.tight_layout()
     return fig
 
@@ -609,24 +606,21 @@ def visualize_rebar_count_y(m, basis_p0, ny_dim_lower, ny_dim_upper):
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
-    ny_dim_lower_plot = np.clip(ny_dim_lower, 0.0, 10.0)
-    ny_dim_upper_plot = np.clip(ny_dim_upper, 0.0, 10.0)
-
     ax1 = draw(m, ax=axes[0])
-    plot(basis_p0, ny_dim_lower_plot, ax=ax1, shading='gouraud', colorbar=True)
+    plot(basis_p0, ny_dim_lower, ax=ax1, shading='gouraud', colorbar=True)
     ax1.set_title('N$_{y,dim,lower}$ [-]')
     ax1.set_xlabel('X [m]')
     ax1.set_ylabel('Y [m]')
     ax1.set_aspect('equal')
 
     ax2 = draw(m, ax=axes[1])
-    plot(basis_p0, ny_dim_upper_plot, ax=ax2, shading='gouraud', colorbar=True)
+    plot(basis_p0, ny_dim_upper, ax=ax2, shading='gouraud', colorbar=True)
     ax2.set_title('N$_{y,dim,upper}$ [-]')
     ax2.set_xlabel('X [m]')
     ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')
 
-    fig.suptitle(f'odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
+    fig.suptitle(f'Odhad počtu výztužných prutů pro průměr {dia_s * 1000:.1f} mm')
     plt.tight_layout()
     return fig
 
