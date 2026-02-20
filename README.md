@@ -30,7 +30,7 @@ použít odpovídající ekvivalenty pro tyto systémy, např. `python3` místo 
 Je třeba mít instalován Python a odpovídající závislosti, které lze instalovet příkazem:
 
 ```bash
-pip install PyQt5 numpy scikit-fem matplotlib gmsh
+pip install PyQt5 numpy scikit-fem matplotlib gmsh meshio
 ```
 
 Spuštění aplikace např. příkazem 
