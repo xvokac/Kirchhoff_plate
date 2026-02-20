@@ -355,10 +355,10 @@ def solve_plate_system(m, basis, K, f):
     N_y_dim_lower = M_y_dim_lower / rebar_factor
     N_y_dim_upper = -M_y_dim_upper / rebar_factor
 
-    #N_x_dim_lower = np.maximum(N_x_dim_lower, 0.0)
-    #N_x_dim_upper = np.maximum(N_x_dim_upper, 0.0)
-    #N_y_dim_lower = np.maximum(N_y_dim_lower, 0.0)
-    #N_y_dim_upper = np.maximum(N_y_dim_upper, 0.0)
+    N_x_dim_lower = np.maximum(N_x_dim_lower, 0.0)
+    N_x_dim_upper = np.maximum(N_x_dim_upper, 0.0)
+    N_y_dim_lower = np.maximum(N_y_dim_lower, 0.0)
+    N_y_dim_upper = np.maximum(N_y_dim_upper, 0.0)
 
     basis_p0 = basis.with_element(ElementTriP0())
     mx = basis_p0.project(M_x)
