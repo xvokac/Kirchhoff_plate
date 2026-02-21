@@ -13,11 +13,14 @@ from PyQt5.QtWidgets import (
     QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
+    QGridLayout,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QGroupBox,
     QSpinBox,
     QTextEdit,
     QVBoxLayout,
@@ -138,14 +141,26 @@ class KirchhoffWindow(QMainWindow):
         self.project_name_input.setText("projekt_01")
 
         form.addRow("Jméno projektu", self.project_name_input)
-        form.addRow("Spojité zatížení q [kN/m²]", self.q_input)
-        form.addRow("Tloušťka desky d [m]", self.d_input)
+        form.addRow(self._pair_row(
+            "Spojité zatížení q [kN/m²]",
+            self.q_input,
+            "Délka strany prvku lc [m]",
+            self.lc_input,
+        ))
+        form.addRow(self._pair_row(
+            "Tloušťka desky d [m]",
+            self.d_input,
+            "Poissonův poměr nu [-]",
+            self.nu_input,
+        ))
         form.addRow("Modul pružnosti E [kPa]", self.e_input)
-        form.addRow("Poissonův poměr nu [-]", self.nu_input)
-        form.addRow("Délka strany prvku lc [m]", self.lc_input)
         form.addRow(QLabel("Paramtery pro odhad výztuže:"))
-        form.addRow("Průměr výztuže dia_s [m]", self.dia_s_input)
-        form.addRow("Předpokládané krytí výztuže as [m]", self.as_input)
+        form.addRow(self._pair_row(
+            "Průměr výztuže dia_s [m]",
+            self.dia_s_input,
+            "Předpokládané krytí výztuže as [m]",
+            self.as_input,
+        ))
         form.addRow("Návrhová hodnota pevnosti oceli f_yd [kPa]", self.fys_input)
         
         self.edges_input = QTextEdit()
@@ -157,17 +172,26 @@ class KirchhoffWindow(QMainWindow):
         layout.addWidget(QLabel("Formát: x, y, w=0?, phi_n=0?   | řádky s komentářem začínají #"))
         layout.addWidget(self.edges_input)
 
-        line_form = QFormLayout()
-        line_form.addRow("Linie X: x_start", self.line_x_start_input)
-        line_form.addRow("Linie X: x_stop", self.line_x_stop_input)
-        line_form.addRow("Linie X: y_konstantní", self.line_x_const_input)
-        line_form.addRow("Linie Y: y_start", self.line_y_start_input)
-        line_form.addRow("Linie Y: y_stop", self.line_y_stop_input)
-        line_form.addRow("Linie Y: x_konstantní", self.line_y_const_input)
-        line_form.addRow("Počet bodů liniových grafů", self.n_pts_input)
+        line_group = QGroupBox("Parametry pro liniové grafy")
+        line_grid = QGridLayout()
+        line_grid.addWidget(QLabel("Linie X: x_start"), 0, 0)
+        line_grid.addWidget(self.line_x_start_input, 0, 1)
+        line_grid.addWidget(QLabel("Linie X: x_stop"), 0, 2)
+        line_grid.addWidget(self.line_x_stop_input, 0, 3)
+        line_grid.addWidget(QLabel("Linie X: y_konstantní"), 0, 4)
+        line_grid.addWidget(self.line_x_const_input, 0, 5)
 
-        layout.addWidget(QLabel("Parametry pro liniové grafy:"))
-        layout.addLayout(line_form)
+        line_grid.addWidget(QLabel("Linie Y: y_start"), 1, 0)
+        line_grid.addWidget(self.line_y_start_input, 1, 1)
+        line_grid.addWidget(QLabel("Linie Y: y_stop"), 1, 2)
+        line_grid.addWidget(self.line_y_stop_input, 1, 3)
+        line_grid.addWidget(QLabel("Linie Y: x_konstantní"), 1, 4)
+        line_grid.addWidget(self.line_y_const_input, 1, 5)
+
+        line_grid.addWidget(QLabel("Počet bodů liniových grafů"), 2, 0, 1, 2)
+        line_grid.addWidget(self.n_pts_input, 2, 2)
+        line_group.setLayout(line_grid)
+        layout.addWidget(line_group)
 
         self.status = QLabel("Nastavte hodnoty a spusťte výpočet.")
 
@@ -182,10 +206,16 @@ class KirchhoffWindow(QMainWindow):
         self._solver_process = None
         self._mesh_process = None
 
-        layout.addWidget(self.save_button)
-        layout.addWidget(self.load_button)
-        layout.addWidget(self.mesh_button)
-        layout.addWidget(self.run_button)
+        top_button_row = QHBoxLayout()
+        top_button_row.addWidget(self.save_button)
+        top_button_row.addWidget(self.load_button)
+
+        bottom_button_row = QHBoxLayout()
+        bottom_button_row.addWidget(self.mesh_button)
+        bottom_button_row.addWidget(self.run_button)
+
+        layout.addLayout(top_button_row)
+        layout.addLayout(bottom_button_row)
         layout.addWidget(self.status)
         self.setCentralWidget(central)
 
@@ -197,6 +227,18 @@ class KirchhoffWindow(QMainWindow):
         box.setValue(value)
         box.setSingleStep(10 ** (-decimals) if decimals > 0 else 1000.0)
         return box
+
+    @staticmethod
+    def _pair_row(left_label, left_widget, right_label, right_widget):
+        pair = QWidget()
+        pair_layout = QHBoxLayout(pair)
+        pair_layout.setContentsMargins(0, 0, 0, 0)
+        pair_layout.addWidget(QLabel(left_label))
+        pair_layout.addWidget(left_widget)
+        pair_layout.addSpacing(16)
+        pair_layout.addWidget(QLabel(right_label))
+        pair_layout.addWidget(right_widget)
+        return pair
 
     def _parse_edges_text(self):
         polygon = []
@@ -493,7 +535,7 @@ def main():
 
     app = QApplication(sys.argv)
     window = KirchhoffWindow()
-    window.resize(760, 820)
+    window.resize(1040, 740)
     window.show()
     sys.exit(app.exec_())
 
