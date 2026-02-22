@@ -77,7 +77,6 @@ Hlavní okno obsahuje několik položek:
 - Jméno projektu - vytvoří v aktuálním adresáři podadresář s tímto názvem pro uložení vstupních a výstupních souborů programu
 - Spojité zatížení na desku
 - Tloušťka desky
-- Modul pružnosti
 - Poissonův poměr
 - Délka strany prvku - generuje se síť MKP s tímto parametrem
 - Geometrie desky - se zadává pomocí tabulky, každá řádek začíná souřadnicemi 
