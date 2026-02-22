@@ -117,7 +117,6 @@ class KirchhoffWindow(QMainWindow):
         self.q_input = self._create_double(15.0, 0.0, 1e6, 2)
         self.lc_input = self._create_double(0.06, 0.005, 1.0, 3)
         self.d_input = self._create_double(0.2, 0.01, 5.0, 3)
-        self.e_input = self._create_double(35e6, 1e3, 1e9, 0)
         self.nu_input = self._create_double(0.25, 0.0, 0.49, 3)
         self.n_pts_input = QSpinBox()
         self.n_pts_input.setRange(10, 2000)
@@ -138,7 +137,6 @@ class KirchhoffWindow(QMainWindow):
         form.addRow("Jméno projektu", self.project_name_input)
         form.addRow("Spojité zatížení q [kN/m²]", self.q_input)
         form.addRow("Tloušťka desky d [m]", self.d_input)
-        form.addRow("Modul pružnosti E [kPa]", self.e_input)
         form.addRow("Poissonův poměr nu [-]", self.nu_input)
         form.addRow("Délka strany prvku lc [m]", self.lc_input)
         
@@ -290,7 +288,6 @@ class KirchhoffWindow(QMainWindow):
             "q": self.q_input.value(),
             "lc": self.lc_input.value(),
             "d": self.d_input.value(),
-            "E": self.e_input.value(),
             "nu": self.nu_input.value(),
             "n_query_pts": self.n_pts_input.value(),
             "edges_text": self.edges_input.toPlainText(),
@@ -303,7 +300,6 @@ class KirchhoffWindow(QMainWindow):
         self.q_input.setValue(float(data["q"]))
         self.lc_input.setValue(float(data["lc"]))
         self.d_input.setValue(float(data["d"]))
-        self.e_input.setValue(float(data["E"]))
         self.nu_input.setValue(float(data["nu"]))
         self.n_pts_input.setValue(int(data["n_query_pts"]))
 
@@ -462,7 +458,6 @@ class KirchhoffWindow(QMainWindow):
         env["KIRCHHOFF_Q"] = str(self.q_input.value())
         env["KIRCHHOFF_LC"] = str(self.lc_input.value())
         env["KIRCHHOFF_D"] = str(self.d_input.value())
-        env["KIRCHHOFF_E"] = str(self.e_input.value())
         env["KIRCHHOFF_NU"] = str(self.nu_input.value())
         env["KIRCHHOFF_N_QUERY_PTS"] = str(self.n_pts_input.value())
         env["KIRCHHOFF_POLYGON"] = json.dumps(polygon)

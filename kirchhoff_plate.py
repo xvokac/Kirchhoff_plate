@@ -304,9 +304,14 @@ def solve_plate_system(m, basis, K, f):
     D = np.where(conden == 1)[0]
 
     # řešení soustavy rovnic se staticky kondenzovanou maticí K a vektorem f
-    w = solve(*condense(K, f, D=D))
+    w_raw = solve(*condense(K, f, D=D))
 
-    interp_grad = basis.interpolate(w).grad
+    # Jednotková desková tuhost D=1: přepočet průhybu násobkem deskové tuhosti.
+    Dpl = E * d ** 3 / (12 * (1 - nu ** 2))
+    w = w_raw * Dpl
+
+    # Momentové veličiny se počítají z původního řešení w_raw.
+    interp_grad = basis.interpolate(w_raw).grad
     phi_x = interp_grad[0]
     phi_y = interp_grad[1]
     int_points_loc, _ = basis.quadrature
@@ -331,7 +336,6 @@ def solve_plate_system(m, basis, K, f):
         phi_yx[i, :] = solution_phi_y[0]
         phi_yy[i, :] = solution_phi_y[1]
 
-    Dpl = E * d ** 3 / (12 * (1 - nu ** 2))
     M_x = -Dpl * (phi_xx + nu * phi_yy)
     M_y = -Dpl * (phi_yy + nu * phi_xx)
     M_xy = -Dpl * (1 - nu) * 0.5 * (phi_xy + phi_yx)
@@ -424,7 +428,7 @@ def visualize_w(m,basis,w):
     draw(m, ax=ax)
     # Zobrazení funkce w
     plot(basis, w, ax=ax, shading='gouraud', colorbar=True)
-    ax.set_title('Shape of deflection $w(x,y)$')
+    ax.set_title('Tvar deformace pro jednotkovou deskovou tuhost (D = 1 kN/m)')
     ax.set_xlabel('X [m]')
     ax.set_ylabel('Y [m]')
     
