@@ -6,6 +6,7 @@ import traceback
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from PyQt5.QtWidgets import (
@@ -169,6 +170,8 @@ class KirchhoffWindow(QMainWindow):
         self.run_button.clicked.connect(self.run_solver)
         self.mesh_button = QPushButton("Generovat síť")
         self.mesh_button.clicked.connect(self.preview_mesh)
+        self.close_plots_button = QPushButton("Zavřít všechny grafy")
+        self.close_plots_button.clicked.connect(self.close_solver_plots)
         self.save_button = QPushButton("Uložit zadání (JSON)")
         self.save_button.clicked.connect(self.save_input_to_json)
         self.load_button = QPushButton("Načíst zadání (JSON)")
@@ -180,8 +183,34 @@ class KirchhoffWindow(QMainWindow):
         layout.addWidget(self.load_button)
         layout.addWidget(self.mesh_button)
         layout.addWidget(self.run_button)
+        layout.addWidget(self.close_plots_button)
         layout.addWidget(self.status)
         self.setCentralWidget(central)
+
+    @staticmethod
+    def _terminate_process(process):
+        if process is None or process.poll() is not None:
+            return False
+
+        process.terminate()
+        wait_deadline = time.time() + 2.0
+        while process.poll() is None and time.time() < wait_deadline:
+            time.sleep(0.05)
+
+        if process.poll() is None:
+            process.kill()
+
+        return True
+
+    def close_solver_plots(self):
+        closed_any = False
+        closed_any |= self._terminate_process(self._solver_process)
+        closed_any |= self._terminate_process(self._mesh_process)
+
+        if closed_any:
+            self.status.setText("Byla zavřena všechna okna grafů solveru. Můžete spustit nový výpočet.")
+        else:
+            self.status.setText("Nebyla nalezena žádná otevřená okna grafů solveru.")
 
     @staticmethod
     def _create_double(value, minimum, maximum, decimals):
