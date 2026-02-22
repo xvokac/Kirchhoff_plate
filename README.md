@@ -76,7 +76,6 @@ Hlavní okno obsahuje několik položek:
 
 - Jméno projektu - vytvoří v aktuálním adresáři podadresář s tímto názvem pro uložení vstupních a výstupních souborů programu
 - Spojité zatížení na desku
-- Tloušťka desky
 - Poissonův poměr
 - Délka strany prvku - generuje se síť MKP s tímto parametrem
 - Geometrie desky - se zadává pomocí tabulky, každá řádek začíná souřadnicemi 
@@ -95,10 +94,12 @@ Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává ak
 
 Dimenzační momenty jsou počítány metodou $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os X a Y.
 
-Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti. 
+Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti.
+Proto tloušťka desky není zadávána v GUI a výpočet používá implicitní hodnoty.
 Na průběh momentů má vliv zadaný poissonův součinitel.
 
-Tvar průhybu (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není. 
+Tvar průhybu (deformace) je pouze orientační, je pro lineární materiál, což ovšem beton není.
+Deformace je proto prezentována pro jednotkovou tuhost.
 Proto desková tuhost vypočtená z tloušťky desky a modulu pružnosti jako u lineárního pružného materiálu není reálná.
 
 Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` a grafy se uloží ve formátu PNG do podadresáře `kirchhoff_plots`. Do adresáře projektu se také zapíše soubor `kirchhoff_input.json` se zadáním výpočtu, které lze programem znovu načíst při dalším spuštění. Text souboru `kirchhoff_input.json` je také v úvodu `kirchhoff_report.pdf` a obsahuje také extrémy ohybových momentů (minima, maxima) a jejch souřadnice X a Y.
@@ -116,7 +117,6 @@ Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` 
 ![input data](kirchhoff_plots/plot_06.png)
 
 ![input data](kirchhoff_plots/plot_07.png)
-
 
 
 
