@@ -119,7 +119,7 @@ Okrajové podmínky (způsob podepření desky) jsou:
 - čtvrtá strana mezi body č. 4 a 1: vetknutí [1, 1];
 Tyto údaje jsou ve třetím a čtvrtým sloupci zadání geometrie desky.
 
-Liniové grafy jsou voleny v místech s velkým vlivem kouticího moementu tak, aby bylo možné ukázat jeich vliv na dimenzování výztuže.
+Liniové grafy jsou voleny v místech s velkou hodnotou kouticího moementu tak, aby bylo možné ukázat jejich vliv na dimenzování výztuže.
 
 Grafické výstupy jsou následující. 
 
