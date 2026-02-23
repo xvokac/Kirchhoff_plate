@@ -136,7 +136,14 @@ Grafické výstupy jsou následující.
 ![input data](Example_01/kirchhoff_plots/plot_07.png)
 
 
+## Example_02
 
+Jedná se o desku vetknutou na rozpětí 2 m se zatížemím 10 kN/m^2. Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL^2 = 3,33$ kNm/m a v poli $(1/24)qL_y^2 = 1,67$ kNm/m. 
+Deska je dlouhá, kolmý rozměr $L_x = 6$ m, a proto velikost $m_x = m_y * \nu$. Rozdělovací výztuž se provo provídí jako $\nu$násobek hlavní nosné výztuže.
 
+![input data](Example_02/kirchhoff_plots/plot_01.png)
 
+![input data](Example_02/kirchhoff_plots/plot_07.png)
+
+![input data](Example_02/kirchhoff_plots/plot_06.png)
 
