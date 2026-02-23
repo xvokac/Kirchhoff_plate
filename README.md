@@ -5,6 +5,8 @@ jednoduchých prvků Morley. Jedná se o nejjednodušší prvek MPK, kterým
 lze řešit tuto problematiku. 
 Ohybové a krouticí momenty jsou po prvku aproximovány konstantní funkcí.
 
+![input data](images/Clipboard.png)
+
 ## Quick start
 
 ```bash
