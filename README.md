@@ -172,7 +172,6 @@ Z výstupů programu je patrné, že zjednodušený postup pro křížem vyztuž
 
 ![input data](Example_04/kirchhoff_plots/plot_06.png)
 
-![input data](Example_04/kirchhoff_plots/plot_07.png)
 
 ## Example_05
 
@@ -184,7 +183,6 @@ Zde je přibližná metoda výpočtu ve větší shodě a její výsledky jsou t
 
 ![input data](Example_05/kirchhoff_plots/plot_06.png)
 
-![input data](Example_05/kirchhoff_plots/plot_07.png)
 
 ## Example_06
 
@@ -199,7 +197,6 @@ V takovém případě je možné pro lepší čitelnost izolinií v grafu oříz
 
 ![input data](Example_06/kirchhoff_plots/plot_06.png)
 
-![input data](Example_06/kirchhoff_plots/plot_07.png)
 
 
 
