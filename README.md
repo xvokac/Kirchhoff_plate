@@ -96,7 +96,7 @@ Tlačítko **Zavřít všechny grafy** uzavře všechna grafická okna solveru a
 
 Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech. Nový výpočet je ale možné spustit až po uzavření všech grafických oken předchozího výpočtu.
 
-Dimenzační momenty jsou počítány metodou $M_{x,dim,lower} = M_x + |M_{xy}|$, $M_{x,dim,upper} = M_x - |M_{xy}|$ a podobně pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os X a Y.
+Dimenzační momenty jsou počítány metodou pro dolní výztuž $M_{x,dim,lower} = M_x + |M_{xy}|$ a dále pro horní výztuž $M_{x,dim,upper} = M_x - |M_{xy}|$.  Analogicky platí vztahy pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os $X$ a $Y$.
 
 Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti.
 Proto tyto parametry nejsou zadávány v okně GUI, výpočet používá implicitní hodnoty.
