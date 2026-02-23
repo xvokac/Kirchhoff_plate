@@ -71,6 +71,14 @@ python -O -m PyInstaller ^
   --upx-dir C:\upx  
 ```
 
+## Omezení
+
+- lineární pružný model
+- řešenou oblastí je uzavřený polygon s liniovými podporami pouze po jeho obvodu
+- neřeší trhliny ani nelinearity
+- není určen pro projektování konstrukcí
+- slouží pouze pro výuku a demonstraci
+
 ---
 
 ## Hlavní okno
