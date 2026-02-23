@@ -30,8 +30,8 @@ Hlavním cílem je:
 
 ## Klíčové soubory
 
-1. **kirchhoff_plate.py** – vlastní výpočet,
-2. **kirchhoff_plate_gui.py** – jednoduché GUI pro zadání vstupů výpočtu a ovládání programu.
+1. **kirchhoff_plate_gui.py** – jednoduché GUI pro zadání vstupů výpočtu a ovládání programu,
+2. **kirchhoff_plate.py** – solver.
 
 ## Jak začít 
 
@@ -44,7 +44,8 @@ Je třeba mít instalován Python a odpovídající závislosti, které lze inst
 pip install PyQt5 numpy scikit-fem matplotlib gmsh meshio
 ```
 
-Spuštění aplikace např. příkazem 
+V adresáři, kde jsou uloženy klíčové soubory, lze spusti aplikaci např. příkazem 
+
 ```bash
 python kirchhoff_plate_gui.py
 ```
