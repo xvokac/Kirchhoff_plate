@@ -113,6 +113,8 @@ Na průběh momentů má ale vliv zadaný poissonův součinitel $\mu$ .
 
 Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` a grafy se uloží ve formátu PNG do podadresáře `kirchhoff_plots`. Do adresáře projektu se také zapíše soubor `kirchhoff_input.json` se zadáním výpočtu, které lze programem znovu načíst při dalším spuštění. Text souboru `kirchhoff_input.json` je také v úvodu `kirchhoff_report.pdf` a obsahuje také extrémy ohybových momentů (minima, maxima) a jejch souřadnice X a Y.
 
+---
+
 ## Example_01
 
 Jedná se o implicitní zadání, které se načte po startu programu. 
