@@ -30,7 +30,7 @@ Hlavním cílem je:
 
 ## Klíčové soubory
 
-1. **kirchhoff_plate_gui.py** – jednoduché GUI pro zadání vstupů výpočtu a ovládání programu,
+1. **kirchhoff_plate_gui.py** – GUI pro zadání vstupů výpočtu a ovládání programu,
 2. **kirchhoff_plate.py** – solver.
 
 ## Jak začít 
@@ -75,7 +75,9 @@ python -O -m PyInstaller ^
 ## Omezení
 
 - lineární pružný model
-- řešenou oblastí je uzavřený polygon s liniovými podporami pouze po jeho obvodu
+- řešenou oblastí je uzavřený polygon
+- liniové podpory (či podmínka symetrie) po obvodu řešené oblasti
+- neřeší vnitřní podpory
 - neřeší trhliny ani nelinearity
 - není určen pro projektování konstrukcí
 - slouží pouze pro výuku a demonstraci
