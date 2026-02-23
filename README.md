@@ -110,7 +110,7 @@ Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` 
 
 Jdná se o imlicitní zadání, které se načte po startu programu. 
 
-Jedná se o lichoběžníkový tvar desky, se souřadnicemi vrcholů [0, 0]; [4, 0]; [3, 3] a [0, 3]. Tyto údaje jsou v prvních dvou sloupců zadání geometrie.
+Jedná se o lichoběžníkový tvar desky, se souřadnicemi vrcholů [0, 0]; [4, 0]; [3, 3] a [0, 3]. Tyto údaje jsou v prvních dvou sloupcích zadání geometrie.
 
 Okrajové podmínky (způsob podepření desky) jsou:
 - první strana mezi body č. 1 a 2: vetknutí [1, 1];
