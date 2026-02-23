@@ -148,9 +148,10 @@ Grafické výstupy jsou následující.
 
 ![input data](Example_01/kirchhoff_plots/plot_05.png)
 
-![input data](Example_01/kirchhoff_plots/plot_06.png)
-
-![input data](Example_01/kirchhoff_plots/plot_07.png)
+<p align="center">
+  <img src="Example_01/kirchhoff_plots/plot_06.png" width="45%">
+  <img src="Example_01/kirchhoff_plots/plot_07.png" width="45%">
+</p>
 
 
 ## Example_02
