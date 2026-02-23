@@ -22,7 +22,7 @@ python kirchhoff_plate_gui.py
 
 Hlavním cílem je:
 
-- výukový program,
+- vytvořit výukový program,
 - demonstrovat použití MKP,
 - demonstrovat ohybové momenty na desce včetně krouticích,
 - ukázat problematiku dimenzačních momentů v železobetonu.
@@ -61,9 +61,8 @@ pip install pyinstaller
 python -m PyInstaller --onefile --windowed kirchhoff_plate_gui.py
 ```
 
-Po dokončení bude spustitelný soubor ve složce `dist/` (např. `dist/kirchhoff_plate_gui.exe`). 
-Je třeba ale potom počítat s jeho větší velikostí, protože obsahuje všechny knihovny, i ty co nutně nepotřebuje. 
-Proto může být vhodnější pro běžného uživatele Python spouštět skript přímo v programu Python, jak je popsáno výše. 
+Po dokončení bude spustitelný soubor ve složce `dist/`. 
+Je třeba počítat s jeho větší velikostí, protože obsahuje všechny knihovny. 
 Případně je možné volit jinou metodu, např. rozbalit UPX pro optimalizaci z `https://upx.github.io/` do  `C:\upx` a použít:
 
 ```bash 
@@ -71,11 +70,6 @@ python -O -m PyInstaller ^
   --onedir --windowed kirchhoff_plate_gui.py ^
   --upx-dir C:\upx  
 ```
-
-V tomto případě přepínač `--onedir` způsobí vytvoření adresáře, kde bude `.exe` soubor a potřebné knihovny k běhu programu budou v podadresáři `_internal`.
-
-Při použití přepínače `--windowed` se neotevře konzolové černé okno, kde by mohly být zobrazovány průběžné informace o běhu programu a chybová hlášení. 
-Tyto výstupy se proto logují do souboru `kirchhoff_gui.log`.
 
 ---
 
@@ -93,21 +87,25 @@ Hlavní okno obsahuje několik položek:
 - Délka strany prvku - generuje se síť MKP s tímto parametrem
 - Geometrie desky - pomocí tabulky se zadává geometrie uzavřeného polygonu ohraničující řešenou oblast. Každá řádek začíná souřadnicemi 
 vrcholu polygonu (X, Y) a následují boolen proměnné k následující 
-straně polygonu určují okrajové podmínky, resp. uložení na této hraně (w=0?, phi_n=0?). Např. kombinace okrajových podmínek [0,0] je pro volný okraj desky, [1,1] vetknutí, [0,1] podmínka osy symetrie, [1,0] válcový kloub.
-- Parametry pro liniové grafy - je možné zadat úsečku rovnoběžnou s osou X a Y, pro kterou se vykreslí grafy průběhu dimenzačních momentů. Souřadnice musí být v dané oblasti řešení desky, jinak se výpočet programu zastaví a oznámí chybové hlášení, které se loguje také do `kirchhoff_gui.log`
+straně polygonu určují okrajové podmínky, resp. uložení na této hraně ($w=0$, $phi_n=0$). Např. kombinace okrajových podmínek [0,0] je pro volný okraj desky, [1,1] vetknutí, [0,1] podmínka osy symetrie, [1,0] válcový kloub.
+- Parametry pro liniové grafy - je možné zadat úsečku rovnoběžnou s osou $X$ a $Y$, pro kterou se vykreslí grafy průběhu dimenzačních momentů. Souřadnice musí být v dané oblasti řešení desky, jinak se výpočet programu zastaví a oznámí chybové hlášení, které se loguje také do `kirchhoff_gui.log`
 - Počet bodů liniového grafu - stanoví se počet bodů na úcečce, pro které se budou hledat výsledky v síti MKP.
 
 Pomocí tlačítek **Uložit zadání (JSON)** a **Načíst zadání (JSON)** lze aktuální vstupní data uložit do souboru ve formátu `JSON` a při dalším spuštění programu je znovu načíst.
 
-Tlačítko **Generovat síť** vygeneruje a zobrazí síť prvků a označí i okrajové podmínky. Slouží pro kontrolu zadané geometrie a sítě prvků. Výpočet se neprovádí.
+Tlačítko **Generovat síť** vygeneruje a zobrazí síť prvků a označí i okrajové podmínky. Slouží pro kontrolu zadané geometrie a sítě prvků. 
+Výpočet se neprovádí.
 
-Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení výstupních grafů a uložení výsledků do adresáře projektu. V závislosti na velikosti úlohy může proces na pozadí trvat delší dobu.
+Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení výstupních grafů a uložení výsledků do adresáře projektu. 
+V závislosti na velikosti úlohy může proces na pozadí trvat delší dobu.
 
 Tlačítko **Zavřít všechny grafy** uzavře všechna grafická okna solveru a je potom možné spustit další výpočet.
 
-Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech. Nový výpočet je ale možné spustit až po uzavření všech grafických oken předchozího výpočtu.
+Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává aktivní i při otevřených grafech. 
+Nový výpočet je ale možné spustit až po uzavření všech grafických oken předchozího výpočtu.
 
-Dimenzační momenty jsou počítány metodou pro dolní výztuž $M_{x,dim,lower} = M_x + |M_{xy}|$ a dále pro horní výztuž $M_{x,dim,upper} = M_x - |M_{xy}|$.  Analogicky platí vztahy pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os $X$ a $Y$.
+Dimenzační momenty jsou počítány metodou pro dolní výztuž $M_{x,dim,lower} = M_x + |M_{xy}|$ a dále pro horní výztuž $M_{x,dim,upper} = M_x - |M_{xy}|$.  
+Analogicky platí vztahy pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os $X$ a $Y$.
 
 Pro výpočet ohybových momentů nemá vliv volba parametrů tloušťky desky a modulu pružnosti.
 Proto tyto parametry nejsou zadávány v okně GUI, výpočet používá implicitní hodnoty.
@@ -115,7 +113,9 @@ Tvar průhybu (deformace) je pouze orientační, platil by pro lineární pružn
 Deformace, resp. průhyb $w(x,y)$, je proto prezentována pro jednotkovou deskovou tuhost.
 Na průběh momentů má ale vliv zadaný poissonův součinitel $\mu$ .
 
-Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` a grafy se uloží ve formátu PNG do podadresáře `kirchhoff_plots`. Do adresáře projektu se také zapíše soubor `kirchhoff_input.json` se zadáním výpočtu, které lze programem znovu načíst při dalším spuštění. Text souboru `kirchhoff_input.json` je také v úvodu `kirchhoff_report.pdf` a obsahuje také extrémy ohybových momentů (minima, maxima) a jejch souřadnice X a Y.
+Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` a grafy se uloží ve formátu PNG do podadresáře `kirchhoff_plots`. 
+Do adresáře projektu se také zapíše soubor `kirchhoff_input.json` se zadáním výpočtu, které lze programem znovu načíst při dalším spuštění. 
+Text souboru `kirchhoff_input.json` je také v úvodu `kirchhoff_report.pdf` a obsahuje také extrémy ohybových momentů (minima, maxima) a jejch souřadnice X a Y.
 
 ---
 
@@ -123,7 +123,8 @@ Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` 
 
 Jedná se o implicitní zadání, které se načte po startu programu. 
 
-Jedná se o lichoběžníkový tvar desky, se souřadnicemi vrcholů [0, 0]; [4, 0]; [3, 3] a [0, 3]. Tyto údaje jsou v prvních dvou sloupcích zadání geometrie.
+Jedná se o lichoběžníkový tvar desky, se souřadnicemi vrcholů [0, 0]; [4, 0]; [3, 3] a [0, 3]. 
+Tyto údaje jsou v prvních dvou sloupcích zadání geometrie.
 
 Okrajové podmínky (způsob podepření desky) jsou:
 - první strana mezi body č. 1 a 2: vetknutí [1, 1];
@@ -153,8 +154,10 @@ Grafické výstupy jsou následující.
 
 ## Example_02
 
-Jedná se o desku vetknutou na rozpětí $L_y = 2$ m se zatížemím 10 kN/m^2. Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL_y^2 = 3,33$ kNm/m a v poli $(1/24)qL_y^2 = 1,67$ kNm/m. 
-Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto velikost $m_x = m_y * \mu$. Rozdělovací výztuž se proto provádí jako $\mu$ násobek hlavní nosné výztuže.
+Jedná se o desku vetknutou na rozpětí $L_y = 2$ m se zatížemím 10 kN/m^2. 
+Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL_y^2 = 3,33$ kNm/m a v poli $(1/24)qL_y^2 = 1,67$ kNm/m. 
+Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto velikost $m_x = m_y * \mu$. 
+Rozdělovací výztuž se proto provádí jako $\mu$ násobek hlavní nosné výztuže.
 
 ![input data](Example_02/kirchhoff_plots/plot_01.png)
 
@@ -176,7 +179,8 @@ Kolmý směr je velmi malý, je pouze $L_y = 1$ m. Působení má proto blíže 
 
 ## Example_04
 
-Jedná se o čtvercovou desku  $L_x = L_x = 6$ m se zatížením 20 kN/m^2. Po celém obvodu je válcový kloub. 
+Jedná se o čtvercovou desku  $L_x = L_x = 6$ m se zatížením 20 kN/m^2. 
+Po celém obvodu je válcový kloub. 
 Při zjednodušeném postupu, kde se usuzuje na velikost $q_x$ a $q_y$ z rovnosti průhybů nosníků ve středu desky ve směru $X$ a $Y$ a řeší se každý směr odděleně, 
 by v tomto případě bylo možné usuzovat na $q_x = q_y = 10$ kN/m^2 a $m_x = m_y = (1/8) q_x L_x^2 = 45,0$ kNm/m.
 Z výstupů programu je patrné, že zjednodušený postup pro křížem vyztuženou desku v tomto případě dimenzační momenty nadhodnocuje.
