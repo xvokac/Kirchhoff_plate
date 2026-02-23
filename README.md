@@ -102,7 +102,7 @@ Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a 
 Proto tyto parametry nejsou zadávány v okně GUI, výpočet používá implicitní hodnoty.
 Tvar průhybu (deformace) je pouze orientační, platil by pro lineární pružný materiál, což ovšem beton nebo železobeton není.
 Deformace, resp. průhyb $w(x,y)$, je proto prezentována pro jednotkovou deskovou tuhost.
-Na průběh momentů má ale vliv zadaný poissonův součinitel.
+Na průběh momentů má ale vliv zadaný poissonův součinitel $\mu$ .
 
 Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` a grafy se uloží ve formátu PNG do podadresáře `kirchhoff_plots`. Do adresáře projektu se také zapíše soubor `kirchhoff_input.json` se zadáním výpočtu, které lze programem znovu načíst při dalším spuštění. Text souboru `kirchhoff_input.json` je také v úvodu `kirchhoff_report.pdf` a obsahuje také extrémy ohybových momentů (minima, maxima) a jejch souřadnice X a Y.
 
@@ -138,12 +138,24 @@ Grafické výstupy jsou následující.
 
 ## Example_02
 
-Jedná se o desku vetknutou na rozpětí 2 m se zatížemím 10 kN/m^2. Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL^2 = 3,33$ kNm/m a v poli $(1/24)qL_y^2 = 1,67$ kNm/m. 
-Deska je dlouhá, kolmý rozměr $L_x = 6$ m, a proto velikost $m_x = m_y * \nu$. Rozdělovací výztuž se provo provídí jako $\nu$násobek hlavní nosné výztuže.
+Jedná se o desku vetknutou na rozpětí $L_y = 2$ m se zatížemím 10 kN/m^2. Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL_y^2 = 3,33$ kNm/m a v poli $(1/24)qL_y^2 = 1,67$ kNm/m. 
+Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto velikost $m_x = m_y * \mu$. Rozdělovací výztuž se provo provídí jako $\mu$ násobek hlavní nosné výztuže.
 
 ![input data](Example_02/kirchhoff_plots/plot_01.png)
 
 ![input data](Example_02/kirchhoff_plots/plot_07.png)
 
 ![input data](Example_02/kirchhoff_plots/plot_06.png)
+
+## Example_03
+
+Jedná se o desku prostě podepřenou na $L_x = 6$ m se zatížením 10 kN/m^2. Využívá se podmínky symetrie, proto se řeší jen levá polovina konstrukce. 
+Ohybový moment $m_x$ na šířku desky 1 m má být $m_x = (1/8) qL_x^2 = 45,0$ kNm/m.
+Kolmý směr je velmi malý, je pouze $L_y = 1$ m. Působení má proto blíže nosníku a příčné přetvořené (Poissonův poměr) se příliš neuplatní.
+
+![input data](Example_03/kirchhoff_plots/plot_01.png)
+
+![input data](Example_03/kirchhoff_plots/plot_06.png)
+
+![input data](Example_03/kirchhoff_plots/plot_07.png)
 
