@@ -7,8 +7,10 @@ Ohybové a krouticí momenty jsou po prvku aproximovány konstantní funkcí.
 
 ## Quick start
 
+```bash
 pip install PyQt5 numpy scikit-fem matplotlib gmsh meshio
 python kirchhoff_plate_gui.py
+```
 
 ---
 
@@ -27,7 +29,7 @@ Hlavním cílem je:
 1. **kirchhoff_plate.py** – vlastní výpočet,
 2. **kirchhoff_plate_gui.py** – jednoduché GUI pro zadání vstupů výpočtu a ovládání programu.
 
-## Jak začít
+## Jak začít 
 
 Příkazy jsou použity pro systém Windows. V případě Linux nebo macOS je třeba
 použít odpovídající ekvivalenty pro tyto systémy, např. `python3` místo `python` atd.
