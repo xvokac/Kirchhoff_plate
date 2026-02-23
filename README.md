@@ -195,5 +195,9 @@ V takovém případě je možné pro lepší čitelnost izolinií v grafu oříz
 
 ![input data](images/Clipboard22.png)
 
+![input data](Example_06/kirchhoff_plots/plot_06.png)
+
+![input data](Example_06/kirchhoff_plots/plot_07.png)
+
 
 
