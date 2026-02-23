@@ -5,6 +5,11 @@ jednoduchých prvků Morley. Jedná se o nejjednodušší prvek MPK, kterým
 lze řešit tuto problematiku. 
 Ohybové a krouticí momenty jsou po prvku aproximovány konstantní funkcí.
 
+## Quick start
+
+pip install PyQt5 numpy scikit-fem matplotlib gmsh meshio
+python kirchhoff_plate_gui.py
+
 ---
 
 ## Cíl
@@ -14,7 +19,7 @@ Hlavním cílem je:
 - výukový program,
 - demonstrovat použití MKP,
 - demonstrovat ohybové momenty na desce včetně krouticích,
-- ukázat problematiku dimenzačních mometů v železobetonu.
+- ukázat problematiku dimenzačních momentů v železobetonu.
 
 
 ## Klíčové soubory
@@ -27,7 +32,7 @@ Hlavním cílem je:
 Příkazy jsou použity pro systém Windows. V případě Linux nebo macOS je třeba
 použít odpovídající ekvivalenty pro tyto systémy, např. `python3` místo `python` atd.
 
-Je třeba mít instalován Python a odpovídající závislosti, které lze instalovet příkazem:
+Je třeba mít instalován Python a odpovídající závislosti, které lze instalovat příkazem:
 
 ```bash
 pip install PyQt5 numpy scikit-fem matplotlib gmsh meshio
@@ -83,14 +88,14 @@ Hlavní okno obsahuje několik položek:
 - Geometrie desky - pomocí tabulky se zadává geometrie uzavřeného polygonu ohraničující řešenou oblast. Každá řádek začíná souřadnicemi 
 vrcholu polygonu (X, Y) a následují boolen proměnné k následující 
 straně polygonu určují okrajové podmínky, resp. uložení na této hraně (w=0?, phi_n=0?). Např. kombinace okrajových podmínek [0,0] je pro volný okraj desky, [1,1] vetknutí, [0,1] podmínka osy symetrie, [1,0] válcový kloub.
-- Parametry pro liniové grafy - je možné zadat úsečku rovnoběžnou s osou X a Y, pro kterou se vykreslí grafy průběhu dimenzačních mometů. Souřadnice musí být v dané oblasti řešení desky, jinak se výpočet programu zastaví a oznámí chybové hlášení, které se loguje také do `kirchhoff_gui.log`
+- Parametry pro liniové grafy - je možné zadat úsečku rovnoběžnou s osou X a Y, pro kterou se vykreslí grafy průběhu dimenzačních momentů. Souřadnice musí být v dané oblasti řešení desky, jinak se výpočet programu zastaví a oznámí chybové hlášení, které se loguje také do `kirchhoff_gui.log`
 - Počet bodů liniového grafu - stanoví se počet bodů na úcečce, pro které se budou hledat výsledky v síti MKP.
 
 Pomocí tlačítek **Uložit zadání (JSON)** a **Načíst zadání (JSON)** lze aktuální vstupní data uložit do souboru ve formátu `JSON` a při dalším spuštění programu je znovu načíst.
 
 Tlačítko **Generovat síť** vygeneruje a zobrazí síť prvků a označí i okrajové podmínky. Slouží pro kontrolu zadané geometrie a sítě prvků. Výpočet se neprovádí.
 
-Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení výstupních grafů a uložení výsledků do adresáře projektu. V závislti na velikosti úlohy může proces na pozadí trvat delší dobu.
+Tlačítko **Spustit výpočet** zahájí výpočetní proces a zobrazení výstupních grafů a uložení výsledků do adresáře projektu. V závislosti na velikosti úlohy může proces na pozadí trvat delší dobu.
 
 Tlačítko **Zavřít všechny grafy** uzavře všechna grafická okna solveru a je potom možné spustit další výpočet.
 
@@ -98,7 +103,7 @@ Výpočet běží v samostatném procesu, takže hlavní panel GUI zůstává ak
 
 Dimenzační momenty jsou počítány metodou pro dolní výztuž $M_{x,dim,lower} = M_x + |M_{xy}|$ a dále pro horní výztuž $M_{x,dim,upper} = M_x - |M_{xy}|$.  Analogicky platí vztahy pro směr $Y$. Předopkládá se orientace nosné výztuže ve směru os $X$ a $Y$.
 
-Pro výpočet ohybových mometů nemá vliv volba parametrů tloušťky desky a modulu pružnosti.
+Pro výpočet ohybových momentů nemá vliv volba parametrů tloušťky desky a modulu pružnosti.
 Proto tyto parametry nejsou zadávány v okně GUI, výpočet používá implicitní hodnoty.
 Tvar průhybu (deformace) je pouze orientační, platil by pro lineární pružný materiál, což ovšem beton nebo železobeton není.
 Deformace, resp. průhyb $w(x,y)$, je proto prezentována pro jednotkovou deskovou tuhost.
@@ -108,7 +113,7 @@ Výsledky se zapíší do adresáře projektu do souboru `kirchhoff_report.pdf` 
 
 ## Example_01
 
-Jdná se o imlicitní zadání, které se načte po startu programu. 
+Jedná se o implicitní zadání, které se načte po startu programu. 
 
 Jedná se o lichoběžníkový tvar desky, se souřadnicemi vrcholů [0, 0]; [4, 0]; [3, 3] a [0, 3]. Tyto údaje jsou v prvních dvou sloupcích zadání geometrie.
 
@@ -119,7 +124,7 @@ Okrajové podmínky (způsob podepření desky) jsou:
 - čtvrtá strana mezi body č. 4 a 1: vetknutí [1, 1];
 Tyto údaje jsou ve třetím a čtvrtým sloupci zadání geometrie desky.
 
-Liniové grafy jsou voleny v místech s velkou hodnotou kouticího moementu tak, aby bylo možné ukázat jejich vliv na dimenzování výztuže.
+Liniové grafy jsou voleny v místech s velkou hodnotou krouticího moementu tak, aby bylo možné ukázat jejich vliv na dimenzování výztuže.
 
 Grafické výstupy jsou následující. 
 
@@ -187,7 +192,7 @@ Zde je přibližná metoda výpočtu ve větší shodě a její výsledky jsou t
 ## Example_06
 
 U složitějších úloh je třeba počítat se vznikem singularit, viz následující příklad. Jeden prvek má výrazně větší hodnotu ohybového momentu. 
-V takovém případě je možné pro lepší čitelnost izolinií v grafu oříznou zobrazované hodnoty ohybových mometů následujícím způsobem.
+V takovém případě je možné pro lepší čitelnost izolinií v grafu oříznou zobrazované hodnoty ohybových momentů následujícím způsobem.
 
 ![input data](Example_06/kirchhoff_plots/plot_01.png)
 
