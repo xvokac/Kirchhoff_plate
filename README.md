@@ -139,7 +139,7 @@ Grafické výstupy jsou následující.
 ## Example_02
 
 Jedná se o desku vetknutou na rozpětí $L_y = 2$ m se zatížemím 10 kN/m^2. Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL_y^2 = 3,33$ kNm/m a v poli $(1/24)qL_y^2 = 1,67$ kNm/m. 
-Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto velikost $m_x = m_y * \mu$. Rozdělovací výztuž se provo provídí jako $\mu$ násobek hlavní nosné výztuže.
+Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto velikost $m_x = m_y * \mu$. Rozdělovací výztuž se proto provádí jako $\mu$ násobek hlavní nosné výztuže.
 
 ![input data](Example_02/kirchhoff_plots/plot_01.png)
 
@@ -162,12 +162,17 @@ Kolmý směr je velmi malý, je pouze $L_y = 1$ m. Působení má proto blíže 
 ## Example_04
 
 Jedná se o čtvercovou desku  $L_x = L_x = 6$ m se zatížením 20 kN/m^2. Po celém obvodu je válcový kloub. 
-Při zjednodušeném postupu, kde se usuzuje na velikost $q_x$ a $q_y$ z rovnosti průhybů nosníků ve středu seky ve směru $X$ a $Y$ a řeší se každý směr odděleně, 
-by v tomto případě bylo možné usuzovat na $q_x = q_x = 10$ kN/m^2 a $m_x = m_y = (1/8) q_x L_x^2 = 45,0$ kNm/m.
-Z výstupů programu je patrné, že zjednodušený postup pro křížem vyztuženou desku dimenzační momenty nadhodnocuje.
+Při zjednodušeném postupu, kde se usuzuje na velikost $q_x$ a $q_y$ z rovnosti průhybů nosníků ve středu desky ve směru $X$ a $Y$ a řeší se každý směr odděleně, 
+by v tomto případě bylo možné usuzovat na $q_x = q_y = 10$ kN/m^2 a $m_x = m_y = (1/8) q_x L_x^2 = 45,0$ kNm/m.
+Z výstupů programu je patrné, že zjednodušený postup pro křížem vyztuženou desku v tomto případě dimenzační momenty nadhodnocuje.
 
 ![input data](Example_04/kirchhoff_plots/plot_01.png)
 
 ![input data](Example_04/kirchhoff_plots/plot_06.png)
 
 ![input data](Example_04/kirchhoff_plots/plot_07.png)
+
+## Example_05
+
+Obdoba předchozího příkladu, po obvodu je v tomto případě vetknutí.
+Zjednodušeným postupem by byl ohybový moment v poli $m_x = m_y = (1/24) q_x L_x^2 = 15,0$ kNm/m a ve vetknutí $m_x = m_y = (1/12) q_x L_x^2 = 30,0$ kNm/m..
