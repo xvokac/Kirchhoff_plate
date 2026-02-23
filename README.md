@@ -141,7 +141,8 @@ Okrajové podmínky (způsob podepření desky) jsou:
 - první strana mezi body č. 1 a 2: vetknutí [1, 1];
 - druhá strana mezi body č. 2 a 3: válcový kloub [1, 0];
 - třetí strana mezi body č. 3 a 4: volný okraj [0, 0];
-- čtvrtá strana mezi body č. 4 a 1: vetknutí [1, 1];
+- čtvrtá strana mezi body č. 4 a 1: vetknutí [1, 1].
+
 Tyto údaje jsou ve třetím a čtvrtým sloupci zadání geometrie desky.
 
 Liniové grafy jsou voleny v místech s velkou hodnotou krouticího moementu tak, aby bylo možné ukázat jejich vliv na dimenzování výztuže.
