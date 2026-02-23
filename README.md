@@ -175,4 +175,11 @@ Z výstupů programu je patrné, že zjednodušený postup pro křížem vyztuž
 ## Example_05
 
 Obdoba předchozího příkladu, po obvodu je v tomto případě vetknutí.
-Zjednodušeným postupem by byl ohybový moment v poli $m_x = m_y = (1/24) q_x L_x^2 = 15,0$ kNm/m a ve vetknutí $m_x = m_y = (1/12) q_x L_x^2 = 30,0$ kNm/m..
+Zjednodušeným postupem by byl ohybový moment v poli $m_x = m_y = (1/24) q_x L_x^2 = 15,0$ kNm/m a ve vetknutí $m_x = m_y = (1/12) q_x L_x^2 = 30,0$ kNm/m.
+Zde je přibližná metoda výpočtu ve větší shodě a její výsledky jsou jen mírně pod výsledky MKP.
+
+![input data](Example_05/kirchhoff_plots/plot_01.png)
+
+![input data](Example_05/kirchhoff_plots/plot_06.png)
+
+![input data](Example_05/kirchhoff_plots/plot_07.png)
