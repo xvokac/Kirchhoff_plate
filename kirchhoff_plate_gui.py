@@ -135,17 +135,17 @@ class KirchhoffWindow(QMainWindow):
 
         form.addRow("Jméno projektu", self.project_name_input)
         form.addRow("Spojité zatížení q [kN/m²]", self.q_input)
-        form.addRow("Poissonův poměr nu [-]", self.nu_input)
+        form.addRow("Poissonův poměr μ [-]", self.nu_input)
         form.addRow("Délka strany prvku lc [m]", self.lc_input)
         
 
         self.edges_input = QTextEdit()
-        self.edges_input.setPlaceholderText("x,y,w,phi_n")
+        self.edges_input.setPlaceholderText("x,y,w,\u03C6_n")
         self.edges_input.setPlainText(_build_default_edges_text())
 
         layout.addLayout(form)
         layout.addWidget(QLabel("Geometrie + okrajové podmínky (1 řádek = 1 vrchol + podmínka následující hrany):"))
-        layout.addWidget(QLabel("Formát: x, y, w=0?, phi_n=0?   | řádky s komentářem začínají #"))
+        layout.addWidget(QLabel("Formát: x, y, w=0?, \u03C6_n=0?   | řádky s komentářem začínají #"))
         layout.addWidget(self.edges_input)
 
         line_form = QFormLayout()
@@ -504,4 +504,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
