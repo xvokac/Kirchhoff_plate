@@ -38,7 +38,7 @@ Hlavním cílem je:
 Příkazy jsou použity pro systém Windows. V případě Linux nebo macOS je třeba
 použít odpovídající ekvivalenty pro tyto systémy, např. `python3` místo `python` atd.
 
-Je třeba mít instalován Python a odpovídající závislosti, které lze instalovat příkazem:
+Je třeba mít instalován Python, viz [https://www.python.org/downloads/](https://www.python.org/downloads/). Odpovídající závislosti lze instalovat příkazem:
 
 ```bash
 pip install PyQt5 numpy scikit-fem matplotlib gmsh meshio
@@ -64,7 +64,7 @@ python -m PyInstaller --onefile --windowed kirchhoff_plate_gui.py
 
 Po dokončení bude spustitelný soubor ve složce `dist/`. 
 Je třeba počítat s jeho větší velikostí, protože obsahuje všechny knihovny. 
-Případně je možné volit jinou metodu, např. rozbalit UPX pro optimalizaci z `https://upx.github.io/` do  `C:\upx` a použít:
+Případně je možné volit jinou metodu, např. rozbalit UPX pro optimalizaci z [https://upx.github.io/](https://upx.github.io/) do  `C:\upx` a použít:
 
 ```bash 
 python -O -m PyInstaller ^
