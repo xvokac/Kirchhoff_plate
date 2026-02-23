@@ -8,6 +8,8 @@ Ohybové a krouticí momenty jsou po prvku aproximovány konstantní funkcí.
 ## Quick start
 
 ```bash
+git clone https://github.com/xvokac/Kirchhoff_plate
+cd Kirchhoff_plate
 pip install PyQt5 numpy scikit-fem matplotlib gmsh meshio
 python kirchhoff_plate_gui.py
 ```
