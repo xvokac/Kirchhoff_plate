@@ -428,7 +428,7 @@ def visualize_w(m,basis,w):
     draw(m, ax=ax)
     # Zobrazení funkce w
     plot(basis, w, ax=ax, shading='gouraud', colorbar=True)
-    ax.set_title('Průhyb $w(x,y)$ pro deskovou tuhost D = 1 kN×m')
+    ax.set_title('Průhyb $w(x,y)$ pro deskovou tuhost D = 1 kNm')
     ax.set_xlabel('X [m]')
     ax.set_ylabel('Y [m]')
     
