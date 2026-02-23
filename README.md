@@ -137,9 +137,10 @@ Liniové grafy jsou voleny v místech s velkou hodnotou krouticího moementu tak
 
 Grafické výstupy jsou následující. 
 
-![input data](Example_01/kirchhoff_plots/plot_01.png)
-
-![input data](Example_01/kirchhoff_plots/plot_02.png)
+<p align="center">
+  <img src="Example_01/kirchhoff_plots/plot_01.png" width="45%">
+  <img src="Example_01/kirchhoff_plots/plot_02.png" width="45%">
+</p>
 
 ![input data](Example_01/kirchhoff_plots/plot_03.png)
 
@@ -159,11 +160,15 @@ Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL_
 Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto velikost $m_x = m_y * \mu$. 
 Rozdělovací výztuž se proto provádí jako $\mu$ násobek hlavní nosné výztuže.
 
-![input data](Example_02/kirchhoff_plots/plot_01.png)
+<p align="center">
+  <img src="Example_02/kirchhoff_plots/plot_01.png" width="45%">
+</p>
 
-![input data](Example_02/kirchhoff_plots/plot_07.png)
+<p align="center">
+  <img src="Example_02/kirchhoff_plots/plot_07.png" width="45%">
+  <img src="Example_02/kirchhoff_plots/plot_06.png" width="45%">
+</p>
 
-![input data](Example_02/kirchhoff_plots/plot_06.png)
 
 ## Example_03
 
@@ -171,11 +176,15 @@ Jedná se o desku prostě podepřenou na $L_x = 6$ m se zatížením 10 kN/m^2. 
 Ohybový moment $m_x$ na šířku desky 1 m má být $m_x = (1/8) qL_x^2 = 45,0$ kNm/m.
 Kolmý směr je velmi malý, je pouze $L_y = 1$ m. Působení má proto blíže nosníku a příčné přetvořené (Poissonův poměr) se příliš neuplatní.
 
-![input data](Example_03/kirchhoff_plots/plot_01.png)
+<p align="center">
+  <img src="Example_03/kirchhoff_plots/plot_01.png" width="45%">
+</p>
 
-![input data](Example_03/kirchhoff_plots/plot_06.png)
+<p align="center">
+  <img src="Example_03/kirchhoff_plots/plot_06.png" width="45%">
+  <img src="Example_03/kirchhoff_plots/plot_07.png" width="45%">
+</p>
 
-![input data](Example_03/kirchhoff_plots/plot_07.png)
 
 ## Example_04
 
@@ -185,9 +194,10 @@ Při zjednodušeném postupu, kde se usuzuje na velikost $q_x$ a $q_y$ z rovnost
 by v tomto případě bylo možné usuzovat na $q_x = q_y = 10$ kN/m^2 a $m_x = m_y = (1/8) q_x L_x^2 = 45,0$ kNm/m.
 Z výstupů programu je patrné, že zjednodušený postup pro křížem vyztuženou desku v tomto případě dimenzační momenty nadhodnocuje.
 
-![input data](Example_04/kirchhoff_plots/plot_01.png)
-
-![input data](Example_04/kirchhoff_plots/plot_06.png)
+<p align="center">
+  <img src="Example_04/kirchhoff_plots/plot_01.png" width="45%">
+  <img src="Example_04/kirchhoff_plots/plot_06.png" width="45%">
+</p>
 
 
 ## Example_05
@@ -196,9 +206,10 @@ Obdoba předchozího příkladu, po obvodu je ale v tomto případě vetknutí.
 Zjednodušeným postupem by byl ohybový moment v poli $m_x = m_y = (1/24) q_x L_x^2 = 15,0$ kNm/m a ve vetknutí $m_x = m_y = (1/12) q_x L_x^2 = 30,0$ kNm/m.
 Zde je přibližná metoda výpočtu ve větší shodě a její výsledky jsou tentokrát menší než hodnoty z MKP.
 
-![input data](Example_05/kirchhoff_plots/plot_01.png)
-
-![input data](Example_05/kirchhoff_plots/plot_06.png)
+<p align="center">
+  <img src="Example_05/kirchhoff_plots/plot_01.png" width="45%">
+  <img src="Example_05/kirchhoff_plots/plot_06.png" width="45%">
+</p>
 
 
 ## Example_06
@@ -206,13 +217,14 @@ Zde je přibližná metoda výpočtu ve větší shodě a její výsledky jsou t
 U složitějších úloh je třeba počítat se vznikem singularit, viz následující příklad. Jeden prvek má výrazně větší hodnotu ohybového momentu. 
 V takovém případě je možné pro lepší čitelnost izolinií v grafu oříznou zobrazované hodnoty ohybových momentů následujícím způsobem.
 
-![input data](Example_06/kirchhoff_plots/plot_01.png)
-
 ![input data](images/Clipboard21.png)
 
 ![input data](images/Clipboard22.png)
 
-![input data](Example_06/kirchhoff_plots/plot_06.png)
+<p align="center">
+  <img src="Example_06/kirchhoff_plots/plot_01.png" width="45%">
+  <img src="Example_06/kirchhoff_plots/plot_06.png" width="45%">
+</p>
 
 
 
