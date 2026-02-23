@@ -170,7 +170,7 @@ Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto veli
 Rozdělovací výztuž se proto provádí jako $\mu$ násobek hlavní nosné výztuže.
 
 <p align="center">
-  <img src="Example_02/kirchhoff_plots/plot_01.png" width="45%">
+  <img src="Example_02/kirchhoff_plots/plot_01.png" width="80%">
 </p>
 
 <p align="center">
@@ -186,7 +186,7 @@ Ohybový moment $m_x$ na šířku desky 1 m má být $m_x = (1/8) qL_x^2 = 45,0$
 Kolmý směr je velmi malý, je pouze $L_y = 1$ m. Působení má proto blíže nosníku a příčné přetvořené (Poissonův poměr) se příliš neuplatní.
 
 <p align="center">
-  <img src="Example_03/kirchhoff_plots/plot_01.png" width="45%">
+  <img src="Example_03/kirchhoff_plots/plot_01.png" width="80%">
 </p>
 
 <p align="center">
