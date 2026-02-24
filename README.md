@@ -9,6 +9,8 @@ Ohybové a krouticí momenty jsou po prvku aproximovány konstantní funkcí.
 
 ## Quick start
 
+Jestliže je instalován [git](https://git-scm.com/) a [Python](https://www.python.org/), potom:
+
 ```bash
 git clone https://github.com/xvokac/Kirchhoff_plate
 cd Kirchhoff_plate
