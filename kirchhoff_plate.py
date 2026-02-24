@@ -677,8 +677,6 @@ def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_
         "project_name": project_name,
         "q": q,
         "lc": lc,
-        "d": d,
-        "E": E,
         "nu": nu,
         "n_query_pts": N_query_pts,
         "edges_text": _build_edges_text(polygon.tolist(), ulozeni.astype(int).tolist()),
