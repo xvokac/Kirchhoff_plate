@@ -78,6 +78,7 @@ python -O -m PyInstaller ^
 
 - lineární pružný model
 - řešenou oblastí je uzavřený polygon
+- konstantní tloušťka desky
 - liniové podpory (či podmínka symetrie) po obvodu řešené oblasti
 - neřeší vnitřní podpory
 - neřeší trhliny ani nelinearity
