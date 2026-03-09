@@ -149,7 +149,7 @@ class KirchhoffWindow(QMainWindow):
 
         layout.addLayout(form)
         layout.addWidget(QLabel("Geometrie + okrajové podmínky (1 řádek = 1 vrchol + podmínka následující hrany):"))
-        layout.addWidget(QLabel("Formát: x, y, w=0?, \u03C6_n=0?   | řádky s komentářem začínají #"))
+        layout.addWidget(QLabel("Formát: x [m], y [m], w=0?, \u03C6_n=0?   | řádky s komentářem začínají #"))
         layout.addWidget(self.edges_input)
 
         line_form = QFormLayout()
@@ -522,5 +522,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
