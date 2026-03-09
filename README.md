@@ -253,8 +253,8 @@ Jako **Linie X (JSON) [x_min, x_max, y_kost]** je možné pro více řezů zadat
 Grafické výstupy jsou následující. 
 
 <p align="center">
-  <img src="Example_07/kirchhoff_plots/plot_01.png" width="45%">
-  <img src="Example_07/kirchhoff_plots/plot_02.png" width="45%">
+  <img src="Example_07/kirchhoff_plots/plot_01.png" width="35%">
+  <img src="Example_07/kirchhoff_plots/plot_02.png" width="55%">
 </p>
 
 ![input data](Example_07/kirchhoff_plots/plot_03.png)
