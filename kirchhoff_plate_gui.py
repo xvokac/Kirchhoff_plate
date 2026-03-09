@@ -153,8 +153,8 @@ class KirchhoffWindow(QMainWindow):
         layout.addWidget(self.edges_input)
 
         line_form = QFormLayout()
-        line_form.addRow("Linie X (JSON)", self.line_x_input)
-        line_form.addRow("Linie Y (JSON)", self.line_y_input)
+        line_form.addRow("Linie X (JSON) [x_min, x_max, y_konst]", self.line_x_input)
+        line_form.addRow("Linie Y (JSON) [y_min, y_max, x_konst]", self.line_y_input)
         line_form.addRow("Počet bodů liniových grafů", self.n_pts_input)
 
         layout.addWidget(QLabel("Parametry pro liniové grafy:"))
