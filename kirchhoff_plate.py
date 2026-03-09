@@ -47,9 +47,28 @@ def _env_json_array(name, default):
     return np.array(parsed)
 
 
-def _validate_line_params(name, line):
-    if line.ndim != 1 or line.shape[0] != 3:
-        raise ValueError(f"`{name}` musí mít tvar [start, stop, konst].")
+def _normalize_line_params(name, line):
+    """Normalizuje parametry linií na 2D pole tvaru (n, 3)."""
+    line = np.asarray(line, dtype=float)
+
+    if line.ndim == 1:
+        if line.shape[0] != 3:
+            raise ValueError(f"`{name}` musí mít tvar [start, stop, konst] nebo [[...], ...].")
+        line = line.reshape(1, 3)
+    elif line.ndim == 2:
+        if line.shape[1] != 3:
+            raise ValueError(f"`{name}` musí mít tvar [start, stop, konst] nebo [[...], ...].")
+    else:
+        raise ValueError(f"`{name}` musí mít tvar [start, stop, konst] nebo [[...], ...].")
+
+    return line
+
+
+def _validate_line_counts(line_params_x, line_params_y):
+    if line_params_x.shape[0] != line_params_y.shape[0]:
+        raise ValueError(
+            "Počet zadaných linií pro `KIRCHHOFF_LINE_PAR_X` a `KIRCHHOFF_LINE_PAR_Y` musí být stejný."
+        )
 
 
 """
@@ -113,8 +132,9 @@ nu = _env_float("KIRCHHOFF_NU", 0.25)  # poissonův poměr
 line_par_x = _env_json_array("KIRCHHOFF_LINE_PAR_X", [0.2, 3, 0])  # x_start, x_stop, y_konstantní
 # 2) linie rovnoběžná s osou y
 line_par_y = _env_json_array("KIRCHHOFF_LINE_PAR_Y", [0.2, 3, 0])  # y_start, y_stop, x_konstantní
-_validate_line_params("KIRCHHOFF_LINE_PAR_X", line_par_x)
-_validate_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
+line_par_x = _normalize_line_params("KIRCHHOFF_LINE_PAR_X", line_par_x)
+line_par_y = _normalize_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
+_validate_line_counts(line_par_x, line_par_y)
 # 3) počet bodů na liniiovém grafu
 N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
 
@@ -354,17 +374,25 @@ def solve_plate_system(m, basis, K, f):
     mx_dim_upper = basis_p0.project(M_x_dim_upper)
     my_dim_upper = basis_p0.project(M_y_dim_upper)
 
-    query_pts_x = np.vstack([
-        np.linspace(line_par_x[0], line_par_x[1], N_query_pts),
-        line_par_x[2] * np.ones(N_query_pts),
-    ])
-    p0_probes_x = basis_p0.probes(query_pts_x)
+    query_pts_x_list = []
+    p0_probes_x_list = []
+    for params_x in line_par_x:
+        query_pts_x = np.vstack([
+            np.linspace(params_x[0], params_x[1], N_query_pts),
+            params_x[2] * np.ones(N_query_pts),
+        ])
+        query_pts_x_list.append(query_pts_x)
+        p0_probes_x_list.append(basis_p0.probes(query_pts_x))
 
-    query_pts_y = np.vstack([
-        line_par_y[2] * np.ones(N_query_pts),
-        np.linspace(line_par_y[0], line_par_y[1], N_query_pts),
-    ])
-    p0_probes_y = basis_p0.probes(query_pts_y)
+    query_pts_y_list = []
+    p0_probes_y_list = []
+    for params_y in line_par_y:
+        query_pts_y = np.vstack([
+            params_y[2] * np.ones(N_query_pts),
+            np.linspace(params_y[0], params_y[1], N_query_pts),
+        ])
+        query_pts_y_list.append(query_pts_y)
+        p0_probes_y_list.append(basis_p0.probes(query_pts_y))
 
     return {
         "D": D,
@@ -377,44 +405,44 @@ def solve_plate_system(m, basis, K, f):
         "my_dim_lower": my_dim_lower,
         "mx_dim_upper": mx_dim_upper,
         "my_dim_upper": my_dim_upper,
-        "query_pts_x": query_pts_x,
-        "p0_probes_x": p0_probes_x,
-        "query_pts_y": query_pts_y,
-        "p0_probes_y": p0_probes_y,
+        "query_pts_x_list": query_pts_x_list,
+        "p0_probes_x_list": p0_probes_x_list,
+        "query_pts_y_list": query_pts_y_list,
+        "p0_probes_y_list": p0_probes_y_list,
     }
 
 
-def visualize_probe_x(query_pts_x, p0_probes_x, mx, mx_dim_lower, mx_dim_upper, line_par_x):
+def visualize_probe_x(query_pts_x_list, p0_probes_x_list, mx, mx_dim_lower, mx_dim_upper, line_par_x):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
-    
     fig, ax = plt.subplots()
-    ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_lower, color='blue', label='lower')
-    ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_upper, color='red', label='upper')
-    ax.plot(query_pts_x[0], p0_probes_x @ mx, color='gray', linestyle=':', label='m_x')
-    ax.set_title(f'Moment $M_{{x, dim}}(x, y={line_par_x[2]:.2f})$ [kNm]')
+    for idx, (query_pts_x, p0_probes_x, params_x) in enumerate(zip(query_pts_x_list, p0_probes_x_list, line_par_x), start=1):
+        ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_lower, label=f'lower #{idx} (y={params_x[2]:.2f})')
+        ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_upper, linestyle='--', label=f'upper #{idx} (y={params_x[2]:.2f})')
+        ax.plot(query_pts_x[0], p0_probes_x @ mx, color='gray', linestyle=':', alpha=0.6)
+    ax.set_title('Moment $M_{x, dim}$ [kNm]')
     ax.set_xlabel('x [m]')
     ax.invert_yaxis()  #záporný moment nahoru
     ax.grid(True)
-    plt.legend() #zobraz legentu
+    ax.legend()
     return fig
 
 
-def visualize_probe_y(query_pts_y, p0_probes_y, my, my_dim_lower, my_dim_upper, line_par_y):
+def visualize_probe_y(query_pts_y_list, p0_probes_y_list, my, my_dim_lower, my_dim_upper, line_par_y):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
 
-    
     fig, ax = plt.subplots()
-    ax.plot(query_pts_y[1], p0_probes_y @ my_dim_lower, color='blue', label='lower')
-    ax.plot(query_pts_y[1], p0_probes_y @ my_dim_upper, color='red', label='upper')
-    ax.plot(query_pts_y[1], p0_probes_y @ my, color='gray', linestyle=':', label='m_y')
-    ax.set_title(f'Moment $M_{{y, dim}}(x={line_par_y[2]:.2f}, y)$ [kNm]')
+    for idx, (query_pts_y, p0_probes_y, params_y) in enumerate(zip(query_pts_y_list, p0_probes_y_list, line_par_y), start=1):
+        ax.plot(query_pts_y[1], p0_probes_y @ my_dim_lower, label=f'lower #{idx} (x={params_y[2]:.2f})')
+        ax.plot(query_pts_y[1], p0_probes_y @ my_dim_upper, linestyle='--', label=f'upper #{idx} (x={params_y[2]:.2f})')
+        ax.plot(query_pts_y[1], p0_probes_y @ my, color='gray', linestyle=':', alpha=0.6)
+    ax.set_title('Moment $M_{y, dim}$ [kNm]')
     ax.set_xlabel('y [m]')
     ax.invert_yaxis()  #záporný moment nahoru
     ax.grid(True)
-    plt.legend() #zobraz legentu
+    ax.legend()
     return fig
 
 
@@ -573,28 +601,30 @@ def visualize_mesh(m, D, basis, line_par_x, line_par_y):
     ax.scatter(x_coords, y_coords, color='red', label=r'$\phi_n=0$') #"r" je důležité, aby zpětné lomítko nebylo interpretováno jako escape sekvence
 
     # 3) Vyznačení linií pro liniové grafy momentů
-    ax.plot(
-        [line_par_x[0], line_par_x[1]],
-        [line_par_x[2], line_par_x[2]],
-        color='green',
-        linewidth=1.8,
-        label='Linie grafu $M_x$',
-    )
-    ax.plot(
-        [line_par_y[2], line_par_y[2]],
-        [line_par_y[0], line_par_y[1]],
-        color='green',
-        linewidth=1.8,
-        linestyle='--',
-        label='Linie grafu $M_y$',
-    )
+    for i, params_x in enumerate(line_par_x, start=1):
+        ax.plot(
+            [params_x[0], params_x[1]],
+            [params_x[2], params_x[2]],
+            color='green',
+            linewidth=1.8,
+            label='Linie grafu $M_x$' if i == 1 else None,
+        )
+    for i, params_y in enumerate(line_par_y, start=1):
+        ax.plot(
+            [params_y[2], params_y[2]],
+            [params_y[0], params_y[1]],
+            color='green',
+            linewidth=1.8,
+            linestyle='--',
+            label='Linie grafu $M_y$' if i == 1 else None,
+        )
 
     # Display the plot
     ax.set_xlabel('X [m]')
     ax.set_ylabel('Y [m]')
     ax.set_aspect('equal', adjustable='box') #stejné měřítko os
     handles, labels = ax.get_legend_handles_labels()
-    unique_entries = dict(zip(labels, handles))
+    unique_entries = {label: handle for label, handle in zip(labels, handles) if label}
     ax.legend(unique_entries.values(), unique_entries.keys())
     return fig
 
@@ -680,8 +710,8 @@ def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_
         "nu": nu,
         "n_query_pts": N_query_pts,
         "edges_text": _build_edges_text(polygon.tolist(), ulozeni.astype(int).tolist()),
-        "line_par_x": line_par_x.tolist(),
-        "line_par_y": line_par_y.tolist(),
+        "line_par_x": line_par_x.tolist() if line_par_x.shape[0] > 1 else line_par_x[0].tolist(),
+        "line_par_y": line_par_y.tolist() if line_par_y.shape[0] > 1 else line_par_y[0].tolist(),
         "field_extrema": _build_field_extrema_data(
             basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
         ),
@@ -692,8 +722,10 @@ def main():
     m, basis, K, f = compute_plate_response()
 
     # Včasné ověření, že linie grafů leží uvnitř oblasti.
-    validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
-    validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
+    for params_x in line_par_x:
+        validate_query_line_in_polygon(params_x, axis="x", polygon=polygon)
+    for params_y in line_par_y:
+        validate_query_line_in_polygon(params_y, axis="y", polygon=polygon)
 
     preview = solve_plate_system(m, basis, K, f)
     fig_mesh = visualize_mesh(m, preview["D"], basis, line_par_x, line_par_y)
@@ -704,8 +736,8 @@ def main():
         visualize_moments(m, preview["basis_p0"], preview["mx"], preview["my"], preview["mxy"]),
         visualize_dim_moments_x(m, preview["basis_p0"], preview["mx_dim_lower"], preview["mx_dim_upper"]),
         visualize_dim_moments_y(m, preview["basis_p0"], preview["my_dim_lower"], preview["my_dim_upper"]),
-        visualize_probe_x(preview["query_pts_x"], preview["p0_probes_x"], preview["mx"], preview["mx_dim_lower"], preview["mx_dim_upper"], line_par_x),
-        visualize_probe_y(preview["query_pts_y"], preview["p0_probes_y"], preview["my"], preview["my_dim_lower"], preview["my_dim_upper"], line_par_y),
+        visualize_probe_x(preview["query_pts_x_list"], preview["p0_probes_x_list"], preview["mx"], preview["mx_dim_lower"], preview["mx_dim_upper"], line_par_x),
+        visualize_probe_y(preview["query_pts_y_list"], preview["p0_probes_y_list"], preview["my"], preview["my_dim_lower"], preview["my_dim_upper"], line_par_y),
     ]
 
     input_data = _build_saved_input_data(
@@ -734,8 +766,10 @@ def preview_mesh_main():
     m, basis, _, _ = compute_plate_response()
     visualize_mesh(m, np.array([], dtype=int), basis, line_par_x, line_par_y)
     plt.show()
-    validate_query_line_in_polygon(line_par_x, axis="x", polygon=polygon)
-    validate_query_line_in_polygon(line_par_y, axis="y", polygon=polygon)
+    for params_x in line_par_x:
+        validate_query_line_in_polygon(params_x, axis="x", polygon=polygon)
+    for params_y in line_par_y:
+        validate_query_line_in_polygon(params_y, axis="y", polygon=polygon)
     
     
     
