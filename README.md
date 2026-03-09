@@ -230,7 +230,8 @@ Zde je přibližná metoda výpočtu ve větší shodě a její výsledky jsou t
 
 ## Example_06
 
-U složitějších úloh je třeba počítat se vznikem singularit, viz následující příklad. Jeden prvek má výrazně větší hodnotu ohybového momentu. 
+U složitějších úloh je třeba počítat se vznikem singularit, viz následující příklad. Jeden prvek má výrazně větší hodnotu ohybového momentu, ale tato hodnota je nereálná. 
+Ohybové momety u singularit je nutné vhodným způsobem redukovat.
 V takovém případě je možné pro lepší čitelnost izolinií v grafu oříznou zobrazované hodnoty ohybových momentů následujícím způsobem.
 
 ![input data](images/Clipboard21.png)
@@ -243,5 +244,25 @@ V takovém případě je možné pro lepší čitelnost izolinií v grafu oříz
 </p>
 
 
+## Example_07
 
+Pro složitější zadání byl program upraven, aby mohl být vykreslován liniový graf ve více řezech, jak je ukázáno v tomto příkladu. 
+Jako **Linie X (JSON) [x_min, x_max, y_kost]** je možné pro více řezů zadat '[[0.0, 4.0, 0.5], [0.0, 4.0, 1.5], [0.0, 2.5, 2.5]]', a potom se vykreslí liniové grafy ve 3 řezech rovnoběžných s osou $X$.
 
+Grafické výstupy jsou následující. 
+
+<p align="center">
+  <img src="Example_07/kirchhoff_plots/plot_01.png" width="45%">
+  <img src="Example_07/kirchhoff_plots/plot_02.png" width="45%">
+</p>
+
+![input data](Example_07/kirchhoff_plots/plot_03.png)
+
+![input data](Example_07/kirchhoff_plots/plot_04.png)
+
+![input data](Example_07/kirchhoff_plots/plot_05.png)
+
+<p align="center">
+  <img src="Example_07/kirchhoff_plots/plot_06.png" width="45%">
+  <img src="Example_07/kirchhoff_plots/plot_07.png" width="45%">
+</p>
