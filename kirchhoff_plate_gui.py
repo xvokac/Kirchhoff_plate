@@ -105,6 +105,10 @@ def _build_default_edges_text():
     return "\n".join(rows)
 
 
+def _build_default_line_text(default_line):
+    return json.dumps(default_line, ensure_ascii=False)
+
+
 class KirchhoffWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -121,13 +125,13 @@ class KirchhoffWindow(QMainWindow):
         self.n_pts_input.setRange(10, 2000)
         self.n_pts_input.setValue(100)
 
-        self.line_x_start_input = self._create_double(DEFAULT_LINE_PAR_X[0], -1e4, 1e4, 3)
-        self.line_x_stop_input = self._create_double(DEFAULT_LINE_PAR_X[1], -1e4, 1e4, 3)
-        self.line_x_const_input = self._create_double(DEFAULT_LINE_PAR_X[2], -1e4, 1e4, 3)
+        self.line_x_input = QLineEdit()
+        self.line_x_input.setText(_build_default_line_text(DEFAULT_LINE_PAR_X))
+        self.line_x_input.setPlaceholderText("např. [0.0, 3.6, 1.0] nebo [[0, 2, 1], [2, 4, 1.5]]")
 
-        self.line_y_start_input = self._create_double(DEFAULT_LINE_PAR_Y[0], -1e4, 1e4, 3)
-        self.line_y_stop_input = self._create_double(DEFAULT_LINE_PAR_Y[1], -1e4, 1e4, 3)
-        self.line_y_const_input = self._create_double(DEFAULT_LINE_PAR_Y[2], -1e4, 1e4, 3)
+        self.line_y_input = QLineEdit()
+        self.line_y_input.setText(_build_default_line_text(DEFAULT_LINE_PAR_Y))
+        self.line_y_input.setPlaceholderText("např. [0.0, 3.0, 1.0] nebo [[0, 2, 1], [2, 3, 1.2]]")
 
         self.project_name_input = QLineEdit()
         self.project_name_input.setPlaceholderText("např. deska_01")
@@ -149,12 +153,8 @@ class KirchhoffWindow(QMainWindow):
         layout.addWidget(self.edges_input)
 
         line_form = QFormLayout()
-        line_form.addRow("Linie X: x_start", self.line_x_start_input)
-        line_form.addRow("Linie X: x_stop", self.line_x_stop_input)
-        line_form.addRow("Linie X: y_konstantní", self.line_x_const_input)
-        line_form.addRow("Linie Y: y_start", self.line_y_start_input)
-        line_form.addRow("Linie Y: y_stop", self.line_y_stop_input)
-        line_form.addRow("Linie Y: x_konstantní", self.line_y_const_input)
+        line_form.addRow("Linie X (JSON)", self.line_x_input)
+        line_form.addRow("Linie Y (JSON)", self.line_y_input)
         line_form.addRow("Počet bodů liniových grafů", self.n_pts_input)
 
         layout.addWidget(QLabel("Parametry pro liniové grafy:"))
@@ -266,17 +266,35 @@ class KirchhoffWindow(QMainWindow):
 
         return polygon, ulozeni
 
+    def _parse_line_param_input(self, field_name, text_value):
+        try:
+            line = json.loads(text_value)
+        except json.JSONDecodeError as error:
+            raise ValueError(f"{field_name}: neplatný JSON ({error})") from error
+
+        if not isinstance(line, list):
+            raise ValueError(f"{field_name}: očekáván seznam [start, stop, konst] nebo seznam takových trojic.")
+
+        is_single = len(line) == 3 and all(isinstance(value, (int, float)) for value in line)
+        if is_single:
+            return [float(value) for value in line]
+
+        if not line:
+            raise ValueError(f"{field_name}: seznam nesmí být prázdný.")
+
+        normalized_lines = []
+        for index, part in enumerate(line, start=1):
+            if not isinstance(part, list) or len(part) != 3 or not all(isinstance(value, (int, float)) for value in part):
+                raise ValueError(
+                    f"{field_name}: položka {index} musí mít tvar [start, stop, konst] s číselnými hodnotami."
+                )
+            normalized_lines.append([float(value) for value in part])
+
+        return normalized_lines
+
     def _build_line_params(self):
-        line_par_x = [
-            self.line_x_start_input.value(),
-            self.line_x_stop_input.value(),
-            self.line_x_const_input.value(),
-        ]
-        line_par_y = [
-            self.line_y_start_input.value(),
-            self.line_y_stop_input.value(),
-            self.line_y_const_input.value(),
-        ]
+        line_par_x = self._parse_line_param_input("Linie X", self.line_x_input.text().strip())
+        line_par_y = self._parse_line_param_input("Linie Y", self.line_y_input.text().strip())
         return line_par_x, line_par_y
 
     def _collect_input_data(self):
@@ -301,18 +319,10 @@ class KirchhoffWindow(QMainWindow):
 
         self.edges_input.setPlainText(str(data["edges_text"]))
 
-        line_par_x = data["line_par_x"]
-        line_par_y = data["line_par_y"]
-        if len(line_par_x) != 3 or len(line_par_y) != 3:
-            raise ValueError("line_par_x a line_par_y musí mít přesně 3 prvky.")
-
-        self.line_x_start_input.setValue(float(line_par_x[0]))
-        self.line_x_stop_input.setValue(float(line_par_x[1]))
-        self.line_x_const_input.setValue(float(line_par_x[2]))
-
-        self.line_y_start_input.setValue(float(line_par_y[0]))
-        self.line_y_stop_input.setValue(float(line_par_y[1]))
-        self.line_y_const_input.setValue(float(line_par_y[2]))
+        line_par_x = self._parse_line_param_input("line_par_x", json.dumps(data["line_par_x"]))
+        line_par_y = self._parse_line_param_input("line_par_y", json.dumps(data["line_par_y"]))
+        self.line_x_input.setText(json.dumps(line_par_x, ensure_ascii=False))
+        self.line_y_input.setText(json.dumps(line_par_y, ensure_ascii=False))
 
     def save_input_to_json(self):
         project_name = self.project_name_input.text().strip()
@@ -373,7 +383,11 @@ class KirchhoffWindow(QMainWindow):
             return
 
         polygon, ulozeni = parsed
-        line_par_x, line_par_y = self._build_line_params()
+        try:
+            line_par_x, line_par_y = self._build_line_params()
+        except ValueError as error:
+            QMessageBox.critical(self, "Neplatné parametry linií", str(error))
+            return
 
         project_name = self.project_name_input.text().strip()
         if not project_name:
@@ -432,7 +446,11 @@ class KirchhoffWindow(QMainWindow):
             return
 
         polygon, ulozeni = parsed
-        line_par_x, line_par_y = self._build_line_params()
+        try:
+            line_par_x, line_par_y = self._build_line_params()
+        except ValueError as error:
+            QMessageBox.critical(self, "Neplatné parametry linií", str(error))
+            return
 
         output_dir = Path.cwd() / "_mesh_preview"
         env = self._build_solver_env(polygon, ulozeni, line_par_x, line_par_y, output_dir)
