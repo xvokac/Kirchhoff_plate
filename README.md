@@ -209,7 +209,7 @@ Po celém obvodu je válcový kloub.
 Při zjednodušeném postupu, kde se usuzuje na velikost $q_x$ a $q_y$ z rovnosti průhybů nosníků ve středu desky ve směru $X$ a $Y$ a řeší se každý směr odděleně, 
 by v tomto případě bylo možné usuzovat na $q_x = q_y = 10$ kN/m^2 a $m_x = m_y = (1/8) q_x L_x^2 = 45,0$ kNm/m.
 Z výstupů programu je patrné, že zjednodušený postup pro křížem vyztuženou desku v tomto případě dimenzační momenty nadhodnocuje.
-Pokud ale skutečné uložení desky umožňuje zdvíhání rohů, potom má přibližné řešení blíže skutečnému chování. MKP řešení zdvíhání rohů desky zamezuje.
+Pokud ale skutečné uložení desky umožňuje zdvíhání rohů, potom může být přibližné řešení blíže skutečnému chování. MKP řešení zdvíhání rohů desky zamezuje.
 
 <p align="center">
   <img src="Example_04/kirchhoff_plots/plot_01.png" width="45%">
