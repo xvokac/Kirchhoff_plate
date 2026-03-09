@@ -64,12 +64,6 @@ def _normalize_line_params(name, line):
     return line
 
 
-def _validate_line_counts(line_params_x, line_params_y):
-    if line_params_x.shape[0] != line_params_y.shape[0]:
-        raise ValueError(
-            "Počet zadaných linií pro `KIRCHHOFF_LINE_PAR_X` a `KIRCHHOFF_LINE_PAR_Y` musí být stejný."
-        )
-
 
 """
 ## ZADÁNÍ #######################################################
@@ -134,7 +128,6 @@ line_par_x = _env_json_array("KIRCHHOFF_LINE_PAR_X", [0.2, 3, 0])  # x_start, x_
 line_par_y = _env_json_array("KIRCHHOFF_LINE_PAR_Y", [0.2, 3, 0])  # y_start, y_stop, x_konstantní
 line_par_x = _normalize_line_params("KIRCHHOFF_LINE_PAR_X", line_par_x)
 line_par_y = _normalize_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
-_validate_line_counts(line_par_x, line_par_y)
 # 3) počet bodů na liniiovém grafu
 N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
 
