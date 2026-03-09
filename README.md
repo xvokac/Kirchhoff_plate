@@ -103,7 +103,7 @@ Hlavní okno obsahuje několik položek:
 vrcholu polygonu (X, Y) a následují boolen proměnné k následující 
 straně polygonu určují okrajové podmínky, resp. uložení na této hraně ($w=0$, $\varphi_n=0$). Např. kombinace okrajových podmínek [0,0] je pro volný okraj desky, [1,1] vetknutí, [0,1] podmínka osy symetrie, [1,0] válcový kloub.
 - Parametry pro liniové grafy - je možné zadat úsečku rovnoběžnou s osou $X$ a $Y$, pro kterou se vykreslí grafy průběhu dimenzačních momentů. Souřadnice musí být v dané oblasti řešení desky, jinak se výpočet programu zastaví a oznámí chybové hlášení, které se loguje také do `kirchhoff_gui.log`
-- Počet bodů liniového grafu - stanoví se počet bodů na úcečce, pro které se budou hledat výsledky v síti MKP.
+- Počet bodů liniového grafu - stanoví se počet bodů na úsečce, pro které se budou hledat výsledky v síti MKP.
 
 Pomocí tlačítek **Uložit zadání (JSON)** a **Načíst zadání (JSON)** lze aktuální vstupní data uložit do souboru ve formátu `JSON` a při dalším spuštění programu je znovu načíst.
 
