@@ -248,7 +248,7 @@ V takovém případě je možné pro lepší čitelnost izolinií v grafu oříz
 ## Example_07
 
 Pro složitější zadání byl program upraven, aby mohl být vykreslován liniový graf ve více řezech, jak je ukázáno v tomto příkladu. 
-Jako **Linie X (JSON) [x_min, x_max, y_kost]** je možné pro více řezů zadat '[[0.0, 4.0, 0.5], [0.0, 4.0, 1.5], [0.0, 2.5, 2.5]]', a potom se vykreslí liniové grafy ve 3 řezech rovnoběžných s osou $X$.
+Jako **Linie X (JSON) [x_min, x_max, y_kost]** je možné pro více řezů zadat `[[0.0, 4.0, 0.5], [0.0, 4.0, 1.5], [0.0, 2.5, 2.5]]`, a potom se vykreslí liniové grafy ve 3 řezech rovnoběžných s osou $X$. Obdobně lze zadat liniové grafy ve směru osy $Y$.
 
 Grafické výstupy jsou následující. 
 
