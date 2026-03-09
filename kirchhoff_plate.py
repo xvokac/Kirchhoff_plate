@@ -411,8 +411,8 @@ def visualize_probe_x(query_pts_x_list, p0_probes_x_list, mx, mx_dim_lower, mx_d
 
     fig, ax = plt.subplots()
     for idx, (query_pts_x, p0_probes_x, params_x) in enumerate(zip(query_pts_x_list, p0_probes_x_list, line_par_x), start=1):
-        ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_lower, label=f'lower #{idx} (y={params_x[2]:.2f})')
-        ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_upper, label=f'upper #{idx} (y={params_x[2]:.2f})')
+        ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_lower, label=f'lower #{idx} (y={params_x[2]:.2f} m)')
+        ax.plot(query_pts_x[0], p0_probes_x @ mx_dim_upper, label=f'upper #{idx} (y={params_x[2]:.2f} m)')
         ax.plot(query_pts_x[0], p0_probes_x @ mx, color='gray', linestyle=':', alpha=0.6)
     ax.set_title('Moment $M_{x, dim}$ [kNm]')
     ax.set_xlabel('x [m]')
@@ -428,8 +428,8 @@ def visualize_probe_y(query_pts_y_list, p0_probes_y_list, my, my_dim_lower, my_d
 
     fig, ax = plt.subplots()
     for idx, (query_pts_y, p0_probes_y, params_y) in enumerate(zip(query_pts_y_list, p0_probes_y_list, line_par_y), start=1):
-        ax.plot(query_pts_y[1], p0_probes_y @ my_dim_lower, label=f'lower #{idx} (x={params_y[2]:.2f})')
-        ax.plot(query_pts_y[1], p0_probes_y @ my_dim_upper, linestyle='--', label=f'upper #{idx} (x={params_y[2]:.2f})')
+        ax.plot(query_pts_y[1], p0_probes_y @ my_dim_lower, label=f'lower #{idx} (x={params_y[2]:.2f} m)')
+        ax.plot(query_pts_y[1], p0_probes_y @ my_dim_upper, label=f'upper #{idx} (x={params_y[2]:.2f} m)')
         ax.plot(query_pts_y[1], p0_probes_y @ my, color='gray', linestyle=':', alpha=0.6)
     ax.set_title('Moment $M_{y, dim}$ [kNm]')
     ax.set_xlabel('y [m]')
