@@ -119,7 +119,7 @@ Tyto deformace jsou ale pro linární materiál, a proto pro ŽB velmi podhodnoc
 """
 d = _env_float("KIRCHHOFF_D", 0.2)  # tloušťka desky v m
 E = _env_float("KIRCHHOFF_E", 35e6)  # modul pružnosti v kPa
-nu = _env_float("KIRCHHOFF_NU", 0.25)  # poissonův poměr
+nu = _env_float("KIRCHHOFF_NU", 0.20)  # poissonův poměr
 
 # Grafy podél linie
 # 1) linie rovnoběžná s osou x
