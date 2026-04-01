@@ -120,7 +120,7 @@ class KirchhoffWindow(QMainWindow):
 
         self.q_input = self._create_double(15.0, 0.0, 1e6, 2)
         self.lc_input = self._create_double(0.06, 0.005, 1.0, 3)
-        self.nu_input = self._create_double(0.25, 0.0, 0.49, 3)
+        self.nu_input = self._create_double(0.20, 0.0, 0.49, 3)
         self.n_pts_input = QSpinBox()
         self.n_pts_input.setRange(10, 2000)
         self.n_pts_input.setValue(100)
