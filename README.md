@@ -174,7 +174,7 @@ Grafické výstupy jsou následující.
 Jedná se o desku vetknutou na rozpětí $L_y = 2$ m se zatížemím 10 kN/m^2. 
 Ohybový moment $m_y$ na 1 m šířky desky ve vetknutí by měl být $(1/12)qL_y^2 = 3,33$ kNm/m a v poli $(1/24)qL_y^2 = 1,67$ kNm/m. 
 Deska je dlouhá, kolmý rozměr na nosnou výstuž je $L_x = 6$ m, a proto velikost $m_x = m_y * \mu$. 
-Rozdělovací výztuž se proto provádí jako $\mu$ násobek hlavní nosné výztuže.
+Rozdělovací výztuž se proto provádí jako $\mu$ násobek hlavní nosné výztuže. EC pro železobeton předpokládá $\mu = 0,20$.
 
 <p align="center">
   <img src="Example_02/kirchhoff_plots/plot_01.png" width="80%">
