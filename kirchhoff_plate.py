@@ -18,6 +18,7 @@ import numpy as np
 from skfem import *
 import meshio
 import matplotlib.pyplot as plt
+from matplotlib.backend_bases import MouseEvent
 from skfem.visuals.matplotlib import draw
 from skfem.models.poisson import unit_load
 from skfem.helpers import dd, ddot, trace, eye
@@ -478,6 +479,61 @@ def visualize_w(m,basis,w):
     return fig
 
 
+def _attach_hover_annotations(fig, axis_configs):
+    """Přidá hover anotaci pro vybrané osy s hodnotami v nejbližším bodě."""
+    annotation = fig.text(
+        0.015,
+        0.015,
+        "",
+        ha="left",
+        va="bottom",
+        fontsize=9,
+        family="monospace",
+        bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.88, "edgecolor": "#666"},
+        visible=False,
+    )
+
+    def _hide_annotation():
+        if annotation.get_visible():
+            annotation.set_visible(False)
+            fig.canvas.draw_idle()
+
+    def _on_move(event: MouseEvent):
+        if event.inaxes is None or event.xdata is None or event.ydata is None:
+            _hide_annotation()
+            return
+
+        for config in axis_configs:
+            if event.inaxes != config["ax"]:
+                continue
+
+            x_vals = config["x"]
+            y_vals = config["y"]
+            if x_vals.size == 0:
+                _hide_annotation()
+                return
+
+            dx = x_vals - event.xdata
+            dy = y_vals - event.ydata
+            idx = int(np.argmin(dx * dx + dy * dy))
+
+            lines = [
+                f"{config['title']}",
+                f"x = {x_vals[idx]:.3f} m",
+                f"y = {y_vals[idx]:.3f} m",
+            ]
+            for label, values, unit in config["fields"]:
+                lines.append(f"{label} = {values[idx]:.3f} {unit}")
+            annotation.set_text("\n".join(lines))
+            annotation.set_visible(True)
+            fig.canvas.draw_idle()
+            return
+
+        _hide_annotation()
+
+    fig.canvas.mpl_connect("motion_notify_event", _on_move)
+
+
 def visualize_moments(m, basis_p0, mx, my, mxy):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
@@ -509,6 +565,35 @@ def visualize_moments(m, basis_p0, mx, my, mxy):
     ax3.set_ylabel('Y [m]')
     ax3.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax1,
+                "title": "Moment Mx",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mx", np.asarray(mx).ravel(), "kNm")],
+            },
+            {
+                "ax": ax2,
+                "title": "Moment My",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("My", np.asarray(my).ravel(), "kNm")],
+            },
+            {
+                "ax": ax3,
+                "title": "Moment Mxy",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mxy", np.asarray(mxy).ravel(), "kNm")],
+            },
+        ],
+    )
+
     plt.tight_layout()  # Pro lepší rozložení grafů
     return fig
 
@@ -535,6 +620,28 @@ def visualize_dim_moments_x(m, basis_p0, mx_dim_lower, mx_dim_upper):
     ax2.set_xlabel('X [m]')
     ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
+
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax1,
+                "title": "Dimenzační moment Mx,lower",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mx,dim,lower", np.asarray(mx_dim_lower).ravel(), "kNm")],
+            },
+            {
+                "ax": ax2,
+                "title": "Dimenzační moment Mx,upper",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mx,dim,upper", np.asarray(mx_dim_upper).ravel(), "kNm")],
+            },
+        ],
+    )
 
     plt.tight_layout()  # Pro lepší rozložení grafů
     return fig
@@ -563,6 +670,27 @@ def visualize_dim_moments_y(m, basis_p0, my_dim_lower, my_dim_upper):
     ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax1,
+                "title": "Dimenzační moment My,lower",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("My,dim,lower", np.asarray(my_dim_lower).ravel(), "kNm")],
+            },
+            {
+                "ax": ax2,
+                "title": "Dimenzační moment My,upper",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("My,dim,upper", np.asarray(my_dim_upper).ravel(), "kNm")],
+            },
+        ],
+    )
 
     plt.tight_layout()  # Pro lepší rozložení grafů
     return fig
@@ -683,6 +811,23 @@ def visualize_principal_moment_directions(basis_p0, m1, m2, phi_deg):
     ax.plot([], [], color='tab:blue', label='M1 směr')
     ax.plot([], [], color='tab:orange', label='M2 směr')
     ax.legend(loc='upper right')
+
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax,
+                "title": "Hlavní momenty",
+                "x": x_sel,
+                "y": y_sel,
+                "fields": [
+                    ("M1", m1_sel, "kNm"),
+                    ("M2", m2_sel, "kNm"),
+                    ("phi", np.rad2deg(phi_sel), "°"),
+                ],
+            }
+        ],
+    )
     return fig
 
 
