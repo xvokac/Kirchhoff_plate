@@ -352,6 +352,17 @@ def solve_plate_system(m, basis, K, f):
     M_x = -Dpl * (phi_xx + nu * phi_yy)
     M_y = -Dpl * (phi_yy + nu * phi_xx)
     M_xy = -Dpl * (1 - nu) * 0.5 * (phi_xy + phi_yx)
+    phi_principal = 0.5 * np.arctan2(-2 * M_xy, M_x - M_y)
+    M_1 = (
+        M_x * np.cos(phi_principal) ** 2
+        + M_y * np.sin(phi_principal) ** 2
+        - M_xy * np.sin(2 * phi_principal)
+    )
+    M_2 = (
+        M_x * np.sin(phi_principal) ** 2
+        + M_y * np.cos(phi_principal) ** 2
+        + M_xy * np.sin(2 * phi_principal)
+    )
 
     M_x_dim_lower = M_x + np.abs(M_xy)
     M_x_dim_upper = M_x - np.abs(M_xy)
@@ -362,6 +373,9 @@ def solve_plate_system(m, basis, K, f):
     mx = basis_p0.project(M_x)
     my = basis_p0.project(M_y)
     mxy = basis_p0.project(M_xy)
+    m1 = basis_p0.project(M_1)
+    m2 = basis_p0.project(M_2)
+    phi_deg = basis_p0.project(np.rad2deg(phi_principal))
     mx_dim_lower = basis_p0.project(M_x_dim_lower)
     my_dim_lower = basis_p0.project(M_y_dim_lower)
     mx_dim_upper = basis_p0.project(M_x_dim_upper)
@@ -394,6 +408,9 @@ def solve_plate_system(m, basis, K, f):
         "mx": mx,
         "my": my,
         "mxy": mxy,
+        "m1": m1,
+        "m2": m2,
+        "phi_deg": phi_deg,
         "mx_dim_lower": mx_dim_lower,
         "my_dim_lower": my_dim_lower,
         "mx_dim_upper": mx_dim_upper,
@@ -547,6 +564,32 @@ def visualize_dim_moments_y(m, basis_p0, my_dim_lower, my_dim_upper):
     return fig
 
 
+def visualize_principal_moment_isolines(basis_p0, m1, m2):
+    import matplotlib.pyplot as plt
+
+    x_vals = basis_p0.doflocs[0]
+    y_vals = basis_p0.doflocs[1]
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    levels_m1 = np.linspace(np.min(m1), np.max(m1), 10)
+    levels_m2 = np.linspace(np.min(m2), np.max(m2), 10)
+    contours_m1 = ax.tricontour(x_vals, y_vals, m1, levels=levels_m1, colors='tab:blue', linewidths=1.2)
+    contours_m2 = ax.tricontour(
+        x_vals, y_vals, m2, levels=levels_m2, colors='tab:orange', linewidths=1.2, linestyles='--'
+    )
+    ax.clabel(contours_m1, inline=True, fontsize=8, fmt='M1=%.1f')
+    ax.clabel(contours_m2, inline=True, fontsize=8, fmt='M2=%.1f')
+    ax.set_title('Izolinie hlavních momentů $M_1$ a $M_2$ [kNm]')
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
+    ax.set_aspect('equal')
+    ax.grid(True, alpha=0.25)
+    ax.plot([], [], color='tab:blue', label='M1 (plná)')
+    ax.plot([], [], color='tab:orange', linestyle='--', label='M2 (čárkovaná)')
+    ax.legend(loc='upper right')
+    return fig
+
+
 def visualize_mesh(m, D, basis, line_par_x, line_par_y):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
@@ -682,11 +725,16 @@ def _field_extrema_with_location(field_values, dof_locations):
     }
 
 
-def _build_field_extrema_data(basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
+def _build_field_extrema_data(
+    basis_p0, mx, my, mxy, m1, m2, phi_deg, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+):
     return {
         "mx": _field_extrema_with_location(mx, basis_p0.doflocs),
         "my": _field_extrema_with_location(my, basis_p0.doflocs),
         "mxy": _field_extrema_with_location(mxy, basis_p0.doflocs),
+        "m1": _field_extrema_with_location(m1, basis_p0.doflocs),
+        "m2": _field_extrema_with_location(m2, basis_p0.doflocs),
+        "phi_deg": _field_extrema_with_location(phi_deg, basis_p0.doflocs),
         "mx_dim_lower": _field_extrema_with_location(mx_dim_lower, basis_p0.doflocs),
         "my_dim_lower": _field_extrema_with_location(my_dim_lower, basis_p0.doflocs),
         "mx_dim_upper": _field_extrema_with_location(mx_dim_upper, basis_p0.doflocs),
@@ -694,7 +742,9 @@ def _build_field_extrema_data(basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower,
     }
 
 
-def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
+def _build_saved_input_data(
+    input_path, basis_p0, mx, my, mxy, m1, m2, phi_deg, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+):
     project_name = os.path.basename(os.path.dirname(os.path.abspath(input_path)))
     return {
         "project_name": project_name,
@@ -706,7 +756,7 @@ def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_
         "line_par_x": line_par_x.tolist() if line_par_x.shape[0] > 1 else line_par_x[0].tolist(),
         "line_par_y": line_par_y.tolist() if line_par_y.shape[0] > 1 else line_par_y[0].tolist(),
         "field_extrema": _build_field_extrema_data(
-            basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+            basis_p0, mx, my, mxy, m1, m2, phi_deg, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
         ),
     }
 
@@ -727,6 +777,7 @@ def main():
         fig_mesh,
         visualize_w(m, basis, preview["w"]),
         visualize_moments(m, preview["basis_p0"], preview["mx"], preview["my"], preview["mxy"]),
+        visualize_principal_moment_isolines(preview["basis_p0"], preview["m1"], preview["m2"]),
         visualize_dim_moments_x(m, preview["basis_p0"], preview["mx_dim_lower"], preview["mx_dim_upper"]),
         visualize_dim_moments_y(m, preview["basis_p0"], preview["my_dim_lower"], preview["my_dim_upper"]),
         visualize_probe_x(preview["query_pts_x_list"], preview["p0_probes_x_list"], preview["mx"], preview["mx_dim_lower"], preview["mx_dim_upper"], line_par_x),
@@ -739,6 +790,9 @@ def main():
         preview["mx"],
         preview["my"],
         preview["mxy"],
+        preview["m1"],
+        preview["m2"],
+        preview["phi_deg"],
         preview["mx_dim_lower"],
         preview["my_dim_lower"],
         preview["mx_dim_upper"],
