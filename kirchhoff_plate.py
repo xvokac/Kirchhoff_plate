@@ -130,6 +130,9 @@ line_par_x = _normalize_line_params("KIRCHHOFF_LINE_PAR_X", line_par_x)
 line_par_y = _normalize_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
 # 3) počet bodů na liniiovém grafu
 N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
+PRINCIPAL_GRID_BINS_X = _env_int("KIRCHHOFF_PRINCIPAL_GRID_BINS_X", 24)
+PRINCIPAL_GRID_BINS_Y = _env_int("KIRCHHOFF_PRINCIPAL_GRID_BINS_Y", 24)
+PRINCIPAL_LINE_SCALE = _env_float("KIRCHHOFF_PRINCIPAL_LINE_SCALE", 0.35)
 
 report_file = os.getenv("KIRCHHOFF_REPORT_FILE", "kirchhoff_report.pdf")
 input_file = os.getenv("KIRCHHOFF_INPUT_FILE", "kirchhoff_input.json")
@@ -590,6 +593,98 @@ def visualize_principal_moment_isolines(basis_p0, m1, m2):
     return fig
 
 
+def _select_points_grid_binning(x_vals, y_vals, score, bins_x, bins_y):
+    bins_x = max(1, int(bins_x))
+    bins_y = max(1, int(bins_y))
+
+    x_min, x_max = np.min(x_vals), np.max(x_vals)
+    y_min, y_max = np.min(y_vals), np.max(y_vals)
+    span_x = max(x_max - x_min, 1e-12)
+    span_y = max(y_max - y_min, 1e-12)
+
+    ix = np.floor((x_vals - x_min) / span_x * bins_x).astype(int)
+    iy = np.floor((y_vals - y_min) / span_y * bins_y).astype(int)
+    ix = np.clip(ix, 0, bins_x - 1)
+    iy = np.clip(iy, 0, bins_y - 1)
+
+    selected = {}
+    for idx, (cell_x, cell_y) in enumerate(zip(ix, iy)):
+        key = (int(cell_x), int(cell_y))
+        if key not in selected or score[idx] > score[selected[key]]:
+            selected[key] = idx
+    return np.array(list(selected.values()), dtype=int)
+
+
+def visualize_principal_moment_directions(basis_p0, m1, m2, phi_deg):
+    import matplotlib.pyplot as plt
+
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    m1 = np.asarray(m1).ravel()
+    m2 = np.asarray(m2).ravel()
+    phi = np.deg2rad(np.asarray(phi_deg).ravel())
+
+    score = np.maximum(np.abs(m1), np.abs(m2))
+    selected_idx = _select_points_grid_binning(
+        x_vals, y_vals, score, PRINCIPAL_GRID_BINS_X, PRINCIPAL_GRID_BINS_Y
+    )
+
+    x_sel = x_vals[selected_idx]
+    y_sel = y_vals[selected_idx]
+    m1_sel = m1[selected_idx]
+    m2_sel = m2[selected_idx]
+    phi_sel = phi[selected_idx]
+
+    p95_m1 = max(np.percentile(np.abs(m1), 95), 1e-12)
+    p95_m2 = max(np.percentile(np.abs(m2), 95), 1e-12)
+    len_m1 = np.clip(np.abs(m1_sel) / p95_m1, 0.2, 1.0)
+    len_m2 = np.clip(np.abs(m2_sel) / p95_m2, 0.2, 1.0)
+
+    x_span = max(np.max(x_vals) - np.min(x_vals), 1e-12)
+    y_span = max(np.max(y_vals) - np.min(y_vals), 1e-12)
+    base_length = min(
+        x_span / max(PRINCIPAL_GRID_BINS_X, 1),
+        y_span / max(PRINCIPAL_GRID_BINS_Y, 1),
+    ) * PRINCIPAL_LINE_SCALE
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.scatter(x_sel, y_sel, s=8, color='black', alpha=0.6, zorder=3)
+
+    for x0, y0, a, lm1, lm2 in zip(x_sel, y_sel, phi_sel, len_m1, len_m2):
+        v1x = np.cos(a)
+        v1y = np.sin(a)
+        v2x = -np.sin(a)
+        v2y = np.cos(a)
+
+        half_1 = 0.5 * base_length * lm1
+        half_2 = 0.5 * base_length * lm2
+
+        ax.plot(
+            [x0 - half_1 * v1x, x0 + half_1 * v1x],
+            [y0 - half_1 * v1y, y0 + half_1 * v1y],
+            color='tab:blue',
+            linewidth=1.2,
+            zorder=4,
+        )
+        ax.plot(
+            [x0 - half_2 * v2x, x0 + half_2 * v2x],
+            [y0 - half_2 * v2y, y0 + half_2 * v2y],
+            color='tab:orange',
+            linewidth=1.2,
+            zorder=4,
+        )
+
+    ax.set_title('Směry hlavních momentů $M_1$ (modrá) a $M_2$ (oranžová)')
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
+    ax.set_aspect('equal')
+    ax.grid(True, alpha=0.25)
+    ax.plot([], [], color='tab:blue', label='M1 směr')
+    ax.plot([], [], color='tab:orange', label='M2 směr')
+    ax.legend(loc='upper right')
+    return fig
+
+
 def visualize_mesh(m, D, basis, line_par_x, line_par_y):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
@@ -777,7 +872,9 @@ def main():
         fig_mesh,
         visualize_w(m, basis, preview["w"]),
         visualize_moments(m, preview["basis_p0"], preview["mx"], preview["my"], preview["mxy"]),
-        visualize_principal_moment_isolines(preview["basis_p0"], preview["m1"], preview["m2"]),
+        visualize_principal_moment_directions(
+            preview["basis_p0"], preview["m1"], preview["m2"], preview["phi_deg"]
+        ),
         visualize_dim_moments_x(m, preview["basis_p0"], preview["mx_dim_lower"], preview["mx_dim_upper"]),
         visualize_dim_moments_y(m, preview["basis_p0"], preview["my_dim_lower"], preview["my_dim_upper"]),
         visualize_probe_x(preview["query_pts_x_list"], preview["p0_probes_x_list"], preview["mx"], preview["mx_dim_lower"], preview["mx_dim_upper"], line_par_x),
