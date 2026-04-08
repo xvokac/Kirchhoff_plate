@@ -18,6 +18,7 @@ import numpy as np
 from skfem import *
 import meshio
 import matplotlib.pyplot as plt
+from matplotlib.backend_bases import MouseEvent
 from skfem.visuals.matplotlib import draw
 from skfem.models.poisson import unit_load
 from skfem.helpers import dd, ddot, trace, eye
@@ -130,6 +131,10 @@ line_par_x = _normalize_line_params("KIRCHHOFF_LINE_PAR_X", line_par_x)
 line_par_y = _normalize_line_params("KIRCHHOFF_LINE_PAR_Y", line_par_y)
 # 3) počet bodů na liniiovém grafu
 N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
+PRINCIPAL_GRID_BINS_X = _env_int("KIRCHHOFF_PRINCIPAL_GRID_BINS_X", 24)
+PRINCIPAL_GRID_BINS_Y = _env_int("KIRCHHOFF_PRINCIPAL_GRID_BINS_Y", 24)
+PRINCIPAL_LINE_SCALE = _env_float("KIRCHHOFF_PRINCIPAL_LINE_SCALE", 0.35)
+PRINCIPAL_CROSS_SCALE = _env_float("KIRCHHOFF_PRINCIPAL_CROSS_SCALE", 2.0)
 
 report_file = os.getenv("KIRCHHOFF_REPORT_FILE", "kirchhoff_report.pdf")
 input_file = os.getenv("KIRCHHOFF_INPUT_FILE", "kirchhoff_input.json")
@@ -352,6 +357,17 @@ def solve_plate_system(m, basis, K, f):
     M_x = -Dpl * (phi_xx + nu * phi_yy)
     M_y = -Dpl * (phi_yy + nu * phi_xx)
     M_xy = -Dpl * (1 - nu) * 0.5 * (phi_xy + phi_yx)
+    phi_principal = 0.5 * np.arctan2(-2 * M_xy, M_x - M_y)
+    M_1 = (
+        M_x * np.cos(phi_principal) ** 2
+        + M_y * np.sin(phi_principal) ** 2
+        - M_xy * np.sin(2 * phi_principal)
+    )
+    M_2 = (
+        M_x * np.sin(phi_principal) ** 2
+        + M_y * np.cos(phi_principal) ** 2
+        + M_xy * np.sin(2 * phi_principal)
+    )
 
     M_x_dim_lower = M_x + np.abs(M_xy)
     M_x_dim_upper = M_x - np.abs(M_xy)
@@ -362,6 +378,9 @@ def solve_plate_system(m, basis, K, f):
     mx = basis_p0.project(M_x)
     my = basis_p0.project(M_y)
     mxy = basis_p0.project(M_xy)
+    m1 = basis_p0.project(M_1)
+    m2 = basis_p0.project(M_2)
+    phi_deg = basis_p0.project(np.rad2deg(phi_principal))
     mx_dim_lower = basis_p0.project(M_x_dim_lower)
     my_dim_lower = basis_p0.project(M_y_dim_lower)
     mx_dim_upper = basis_p0.project(M_x_dim_upper)
@@ -394,6 +413,9 @@ def solve_plate_system(m, basis, K, f):
         "mx": mx,
         "my": my,
         "mxy": mxy,
+        "m1": m1,
+        "m2": m2,
+        "phi_deg": phi_deg,
         "mx_dim_lower": mx_dim_lower,
         "my_dim_lower": my_dim_lower,
         "mx_dim_upper": mx_dim_upper,
@@ -457,6 +479,61 @@ def visualize_w(m,basis,w):
     return fig
 
 
+def _attach_hover_annotations(fig, axis_configs):
+    """Přidá hover anotaci pro vybrané osy s hodnotami v nejbližším bodě."""
+    annotation = fig.text(
+        0.015,
+        0.015,
+        "",
+        ha="left",
+        va="bottom",
+        fontsize=9,
+        family="monospace",
+        bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.88, "edgecolor": "#666"},
+        visible=False,
+    )
+
+    def _hide_annotation():
+        if annotation.get_visible():
+            annotation.set_visible(False)
+            fig.canvas.draw_idle()
+
+    def _on_move(event: MouseEvent):
+        if event.inaxes is None or event.xdata is None or event.ydata is None:
+            _hide_annotation()
+            return
+
+        for config in axis_configs:
+            if event.inaxes != config["ax"]:
+                continue
+
+            x_vals = config["x"]
+            y_vals = config["y"]
+            if x_vals.size == 0:
+                _hide_annotation()
+                return
+
+            dx = x_vals - event.xdata
+            dy = y_vals - event.ydata
+            idx = int(np.argmin(dx * dx + dy * dy))
+
+            lines = [
+                f"{config['title']}",
+                f"x = {x_vals[idx]:.3f} m",
+                f"y = {y_vals[idx]:.3f} m",
+            ]
+            for label, values, unit in config["fields"]:
+                lines.append(f"{label} = {values[idx]:.3f} {unit}")
+            annotation.set_text("\n".join(lines))
+            annotation.set_visible(True)
+            fig.canvas.draw_idle()
+            return
+
+        _hide_annotation()
+
+    fig.canvas.mpl_connect("motion_notify_event", _on_move)
+
+
 def visualize_moments(m, basis_p0, mx, my, mxy):
     from skfem.visuals.matplotlib import draw, plot
     import matplotlib.pyplot as plt
@@ -488,6 +565,35 @@ def visualize_moments(m, basis_p0, mx, my, mxy):
     ax3.set_ylabel('Y [m]')
     ax3.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax1,
+                "title": "Moment Mx",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mx", np.asarray(mx).ravel(), "kNm")],
+            },
+            {
+                "ax": ax2,
+                "title": "Moment My",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("My", np.asarray(my).ravel(), "kNm")],
+            },
+            {
+                "ax": ax3,
+                "title": "Moment Mxy",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mxy", np.asarray(mxy).ravel(), "kNm")],
+            },
+        ],
+    )
+
     plt.tight_layout()  # Pro lepší rozložení grafů
     return fig
 
@@ -514,6 +620,28 @@ def visualize_dim_moments_x(m, basis_p0, mx_dim_lower, mx_dim_upper):
     ax2.set_xlabel('X [m]')
     ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
+
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax1,
+                "title": "Dimenzační moment Mx,lower",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mx,dim,lower", np.asarray(mx_dim_lower).ravel(), "kNm")],
+            },
+            {
+                "ax": ax2,
+                "title": "Dimenzační moment Mx,upper",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("Mx,dim,upper", np.asarray(mx_dim_upper).ravel(), "kNm")],
+            },
+        ],
+    )
 
     plt.tight_layout()  # Pro lepší rozložení grafů
     return fig
@@ -542,8 +670,164 @@ def visualize_dim_moments_y(m, basis_p0, my_dim_lower, my_dim_upper):
     ax2.set_ylabel('Y [m]')
     ax2.set_aspect('equal')  # Nastavení stejného měřítka pro osy
 
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax1,
+                "title": "Dimenzační moment My,lower",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("My,dim,lower", np.asarray(my_dim_lower).ravel(), "kNm")],
+            },
+            {
+                "ax": ax2,
+                "title": "Dimenzační moment My,upper",
+                "x": x_vals,
+                "y": y_vals,
+                "fields": [("My,dim,upper", np.asarray(my_dim_upper).ravel(), "kNm")],
+            },
+        ],
+    )
 
     plt.tight_layout()  # Pro lepší rozložení grafů
+    return fig
+
+
+def visualize_principal_moment_isolines(basis_p0, m1, m2):
+    import matplotlib.pyplot as plt
+
+    x_vals = basis_p0.doflocs[0]
+    y_vals = basis_p0.doflocs[1]
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    levels_m1 = np.linspace(np.min(m1), np.max(m1), 10)
+    levels_m2 = np.linspace(np.min(m2), np.max(m2), 10)
+    contours_m1 = ax.tricontour(x_vals, y_vals, m1, levels=levels_m1, colors='tab:blue', linewidths=1.2)
+    contours_m2 = ax.tricontour(
+        x_vals, y_vals, m2, levels=levels_m2, colors='tab:orange', linewidths=1.2, linestyles='--'
+    )
+    ax.clabel(contours_m1, inline=True, fontsize=8, fmt='M1=%.1f')
+    ax.clabel(contours_m2, inline=True, fontsize=8, fmt='M2=%.1f')
+    ax.set_title('Izolinie hlavních momentů $M_1$ a $M_2$ [kNm]')
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
+    ax.set_aspect('equal')
+    ax.grid(True, alpha=0.25)
+    ax.plot([], [], color='tab:blue', label='M1 (plná)')
+    ax.plot([], [], color='tab:orange', linestyle='--', label='M2 (čárkovaná)')
+    ax.legend(loc='upper right')
+    return fig
+
+
+def _select_points_grid_binning(x_vals, y_vals, score, bins_x, bins_y):
+    bins_x = max(1, int(bins_x))
+    bins_y = max(1, int(bins_y))
+
+    x_min, x_max = np.min(x_vals), np.max(x_vals)
+    y_min, y_max = np.min(y_vals), np.max(y_vals)
+    span_x = max(x_max - x_min, 1e-12)
+    span_y = max(y_max - y_min, 1e-12)
+
+    ix = np.floor((x_vals - x_min) / span_x * bins_x).astype(int)
+    iy = np.floor((y_vals - y_min) / span_y * bins_y).astype(int)
+    ix = np.clip(ix, 0, bins_x - 1)
+    iy = np.clip(iy, 0, bins_y - 1)
+
+    selected = {}
+    for idx, (cell_x, cell_y) in enumerate(zip(ix, iy)):
+        key = (int(cell_x), int(cell_y))
+        if key not in selected or score[idx] > score[selected[key]]:
+            selected[key] = idx
+    return np.array(list(selected.values()), dtype=int)
+
+
+def visualize_principal_moment_directions(basis_p0, m1, m2, phi_deg):
+    import matplotlib.pyplot as plt
+
+    x_vals = np.asarray(basis_p0.doflocs[0]).ravel()
+    y_vals = np.asarray(basis_p0.doflocs[1]).ravel()
+    m1 = np.asarray(m1).ravel()
+    m2 = np.asarray(m2).ravel()
+    phi = np.deg2rad(np.asarray(phi_deg).ravel())
+
+    score = np.maximum(np.abs(m1), np.abs(m2))
+    selected_idx = _select_points_grid_binning(
+        x_vals, y_vals, score, PRINCIPAL_GRID_BINS_X, PRINCIPAL_GRID_BINS_Y
+    )
+
+    x_sel = x_vals[selected_idx]
+    y_sel = y_vals[selected_idx]
+    m1_sel = m1[selected_idx]
+    m2_sel = m2[selected_idx]
+    phi_sel = phi[selected_idx]
+
+    p95_m1 = max(np.percentile(np.abs(m1), 95), 1e-12)
+    p95_m2 = max(np.percentile(np.abs(m2), 95), 1e-12)
+    len_m1 = np.clip(np.abs(m1_sel) / p95_m1, 0.2, 1.0)
+    len_m2 = np.clip(np.abs(m2_sel) / p95_m2, 0.2, 1.0)
+
+    x_span = max(np.max(x_vals) - np.min(x_vals), 1e-12)
+    y_span = max(np.max(y_vals) - np.min(y_vals), 1e-12)
+    base_length = min(
+        x_span / max(PRINCIPAL_GRID_BINS_X, 1),
+        y_span / max(PRINCIPAL_GRID_BINS_Y, 1),
+    ) * PRINCIPAL_LINE_SCALE * PRINCIPAL_CROSS_SCALE
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.scatter(x_sel, y_sel, s=8, color='black', alpha=0.6, zorder=3)
+
+    for x0, y0, a, lm1, lm2 in zip(x_sel, y_sel, phi_sel, len_m1, len_m2):
+        v1x = np.cos(a)
+        v1y = np.sin(a)
+        v2x = -np.sin(a)
+        v2y = np.cos(a)
+
+        half_1 = 0.5 * base_length * lm1
+        half_2 = 0.5 * base_length * lm2
+
+        ax.plot(
+            [x0 - half_1 * v1x, x0 + half_1 * v1x],
+            [y0 - half_1 * v1y, y0 + half_1 * v1y],
+            color='tab:blue',
+            linewidth=1.2,
+            zorder=4,
+        )
+        ax.plot(
+            [x0 - half_2 * v2x, x0 + half_2 * v2x],
+            [y0 - half_2 * v2y, y0 + half_2 * v2y],
+            color='tab:orange',
+            linewidth=1.2,
+            zorder=4,
+        )
+
+    ax.set_title('Směry hlavních momentů $M_1$ (modrá) a $M_2$ (oranžová)')
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
+    ax.set_aspect('equal')
+    ax.grid(True, alpha=0.25)
+    ax.plot([], [], color='tab:blue', label='M1 směr')
+    ax.plot([], [], color='tab:orange', label='M2 směr')
+    ax.legend(loc='upper right')
+
+    _attach_hover_annotations(
+        fig,
+        [
+            {
+                "ax": ax,
+                "title": "Hlavní momenty",
+                "x": x_sel,
+                "y": y_sel,
+                "fields": [
+                    ("M1", m1_sel, "kNm"),
+                    ("M2", m2_sel, "kNm"),
+                    ("phi", np.rad2deg(phi_sel), "°"),
+                ],
+            }
+        ],
+    )
     return fig
 
 
@@ -682,11 +966,16 @@ def _field_extrema_with_location(field_values, dof_locations):
     }
 
 
-def _build_field_extrema_data(basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
+def _build_field_extrema_data(
+    basis_p0, mx, my, mxy, m1, m2, phi_deg, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+):
     return {
         "mx": _field_extrema_with_location(mx, basis_p0.doflocs),
         "my": _field_extrema_with_location(my, basis_p0.doflocs),
         "mxy": _field_extrema_with_location(mxy, basis_p0.doflocs),
+        "m1": _field_extrema_with_location(m1, basis_p0.doflocs),
+        "m2": _field_extrema_with_location(m2, basis_p0.doflocs),
+        "phi_deg": _field_extrema_with_location(phi_deg, basis_p0.doflocs),
         "mx_dim_lower": _field_extrema_with_location(mx_dim_lower, basis_p0.doflocs),
         "my_dim_lower": _field_extrema_with_location(my_dim_lower, basis_p0.doflocs),
         "mx_dim_upper": _field_extrema_with_location(mx_dim_upper, basis_p0.doflocs),
@@ -694,7 +983,9 @@ def _build_field_extrema_data(basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower,
     }
 
 
-def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper):
+def _build_saved_input_data(
+    input_path, basis_p0, mx, my, mxy, m1, m2, phi_deg, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+):
     project_name = os.path.basename(os.path.dirname(os.path.abspath(input_path)))
     return {
         "project_name": project_name,
@@ -706,7 +997,7 @@ def _build_saved_input_data(input_path, basis_p0, mx, my, mxy, mx_dim_lower, my_
         "line_par_x": line_par_x.tolist() if line_par_x.shape[0] > 1 else line_par_x[0].tolist(),
         "line_par_y": line_par_y.tolist() if line_par_y.shape[0] > 1 else line_par_y[0].tolist(),
         "field_extrema": _build_field_extrema_data(
-            basis_p0, mx, my, mxy, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
+            basis_p0, mx, my, mxy, m1, m2, phi_deg, mx_dim_lower, my_dim_lower, mx_dim_upper, my_dim_upper
         ),
     }
 
@@ -727,6 +1018,10 @@ def main():
         fig_mesh,
         visualize_w(m, basis, preview["w"]),
         visualize_moments(m, preview["basis_p0"], preview["mx"], preview["my"], preview["mxy"]),
+        visualize_principal_moment_isolines(preview["basis_p0"], preview["m1"], preview["m2"]),
+        visualize_principal_moment_directions(
+            preview["basis_p0"], preview["m1"], preview["m2"], preview["phi_deg"]
+        ),
         visualize_dim_moments_x(m, preview["basis_p0"], preview["mx_dim_lower"], preview["mx_dim_upper"]),
         visualize_dim_moments_y(m, preview["basis_p0"], preview["my_dim_lower"], preview["my_dim_upper"]),
         visualize_probe_x(preview["query_pts_x_list"], preview["p0_probes_x_list"], preview["mx"], preview["mx_dim_lower"], preview["mx_dim_upper"], line_par_x),
@@ -739,6 +1034,9 @@ def main():
         preview["mx"],
         preview["my"],
         preview["mxy"],
+        preview["m1"],
+        preview["m2"],
+        preview["phi_deg"],
         preview["mx_dim_lower"],
         preview["my_dim_lower"],
         preview["mx_dim_upper"],
