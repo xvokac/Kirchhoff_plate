@@ -702,9 +702,17 @@ def visualize_principal_moment_isolines(basis_p0, m1, m2):
     x_vals = basis_p0.doflocs[0]
     y_vals = basis_p0.doflocs[1]
 
+    def _contour_levels(values, count=10):
+        values = np.asarray(values).ravel()
+        vmin = np.min(values)
+        vmax = np.max(values)
+        if np.isclose(vmin, vmax):
+            return np.array([vmin])
+        return np.linspace(vmin, vmax, count)
+
     fig, ax = plt.subplots(figsize=(9, 7))
-    levels_m1 = np.linspace(np.min(m1), np.max(m1), 10)
-    levels_m2 = np.linspace(np.min(m2), np.max(m2), 10)
+    levels_m1 = _contour_levels(m1, 10)
+    levels_m2 = _contour_levels(m2, 10)
     contours_m1 = ax.tricontour(x_vals, y_vals, m1, levels=levels_m1, colors='tab:blue', linewidths=1.2)
     contours_m2 = ax.tricontour(
         x_vals, y_vals, m2, levels=levels_m2, colors='tab:orange', linewidths=1.2, linestyles='--'
@@ -766,8 +774,8 @@ def visualize_principal_moment_directions(basis_p0, m1, m2, phi_deg):
 
     p95_m1 = max(np.percentile(np.abs(m1), 95), 1e-12)
     p95_m2 = max(np.percentile(np.abs(m2), 95), 1e-12)
-    len_m1 = np.clip(np.abs(m1_sel) / p95_m1, 0.2, 1.0)
-    len_m2 = np.clip(np.abs(m2_sel) / p95_m2, 0.2, 1.0)
+    len_m1 = np.clip(np.abs(m1_sel) / p95_m1, 0.0, 1.0)
+    len_m2 = np.clip(np.abs(m2_sel) / p95_m2, 0.0, 1.0)
 
     x_span = max(np.max(x_vals) - np.min(x_vals), 1e-12)
     y_span = max(np.max(y_vals) - np.min(y_vals), 1e-12)
