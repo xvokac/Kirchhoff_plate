@@ -133,6 +133,7 @@ N_query_pts = _env_int("KIRCHHOFF_N_QUERY_PTS", 100)
 PRINCIPAL_GRID_BINS_X = _env_int("KIRCHHOFF_PRINCIPAL_GRID_BINS_X", 24)
 PRINCIPAL_GRID_BINS_Y = _env_int("KIRCHHOFF_PRINCIPAL_GRID_BINS_Y", 24)
 PRINCIPAL_LINE_SCALE = _env_float("KIRCHHOFF_PRINCIPAL_LINE_SCALE", 0.35)
+PRINCIPAL_CROSS_SCALE = _env_float("KIRCHHOFF_PRINCIPAL_CROSS_SCALE", 2.0)
 
 report_file = os.getenv("KIRCHHOFF_REPORT_FILE", "kirchhoff_report.pdf")
 input_file = os.getenv("KIRCHHOFF_INPUT_FILE", "kirchhoff_input.json")
@@ -645,7 +646,7 @@ def visualize_principal_moment_directions(basis_p0, m1, m2, phi_deg):
     base_length = min(
         x_span / max(PRINCIPAL_GRID_BINS_X, 1),
         y_span / max(PRINCIPAL_GRID_BINS_Y, 1),
-    ) * PRINCIPAL_LINE_SCALE
+    ) * PRINCIPAL_LINE_SCALE * PRINCIPAL_CROSS_SCALE
 
     fig, ax = plt.subplots(figsize=(9, 7))
     ax.scatter(x_sel, y_sel, s=8, color='black', alpha=0.6, zorder=3)
@@ -872,6 +873,7 @@ def main():
         fig_mesh,
         visualize_w(m, basis, preview["w"]),
         visualize_moments(m, preview["basis_p0"], preview["mx"], preview["my"], preview["mxy"]),
+        visualize_principal_moment_isolines(preview["basis_p0"], preview["m1"], preview["m2"]),
         visualize_principal_moment_directions(
             preview["basis_p0"], preview["m1"], preview["m2"], preview["phi_deg"]
         ),
