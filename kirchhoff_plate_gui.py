@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import time
+import webbrowser
 from pathlib import Path
 
 from PyQt5.QtWidgets import (
@@ -172,11 +173,14 @@ class KirchhoffWindow(QMainWindow):
         self.save_button.clicked.connect(self.save_input_to_json)
         self.load_button = QPushButton("Načíst zadání (JSON)")
         self.load_button.clicked.connect(self.load_input_from_json)
+        self.about_github_button = QPushButton("O aplikaci na github.com")
+        self.about_github_button.clicked.connect(self.open_github_page)
         self._solver_process = None
         self._mesh_process = None
 
         layout.addWidget(self.save_button)
         layout.addWidget(self.load_button)
+        layout.addWidget(self.about_github_button)
         layout.addWidget(self.mesh_button)
         layout.addWidget(self.run_button)
         layout.addWidget(self.close_plots_button)
@@ -207,6 +211,10 @@ class KirchhoffWindow(QMainWindow):
             self.status.setText("Byla zavřena všechna okna grafů solveru. Můžete spustit nový výpočet.")
         else:
             self.status.setText("Nebyla nalezena žádná otevřená okna grafů solveru.")
+
+    def open_github_page(self):
+        webbrowser.open("https://github.com/xvokac/Kirchhoff_plate")
+        self.status.setText("Byla otevřena stránka projektu na GitHubu.")
 
     @staticmethod
     def _create_double(value, minimum, maximum, decimals):
